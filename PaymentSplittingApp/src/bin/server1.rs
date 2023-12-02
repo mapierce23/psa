@@ -13,6 +13,7 @@ use std::time::{Duration, SystemTime};
 use std::ops::DerefMut;
 use hmac::{Hmac, Mac, NewMac};
 use sha2::Sha256;
+use sha2::Digest;
 use rand::thread_rng;
 use rand::Rng;
 use redis::Connection;
@@ -28,10 +29,9 @@ use payapp::Group;
 use payapp::u32_to_bits;
 use payapp::FieldElm;
 use payapp::dpf::*;
-
-const MAX_GROUP_SIZE: usize = 10;
-const MAX_GROUP_NUM: usize = 10;
-const DPF_DOMAIN: usize = 9;
+use payapp::MAX_GROUP_SIZE;
+use payapp::MAX_GROUP_NUM;
+use payapp::DPF_DOMAIN;
 
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, mac: &Hmac<Sha256>) -> io::Result<()> {
 
@@ -53,7 +53,17 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // Data: PRF Keys
         if buf[0] == 1 {
             let mut guard = counter.lock().unwrap();
-            let decoded: (u64, u64) = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let decoded: (Vec<u8>, Vec<u8>) = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            // PUSH PRF Keys to Redis
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([1u8, 1u8]); // SERVER ID, TYPE
+            let index = guard.deref();
+            let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
+            key.extend(group_num.to_be_bytes()); 
+            let _ : () = con.set(key.clone(), decoded.0).unwrap();
+            key[0] = (2u8);
+            let _ : () = con.set(key.clone(), decoded.1).unwrap();
+
             let (aids, pubkey) = server_data.setup_new_group(guard.deref());
             let encoded = bincode::serialize(&(aids, pubkey)).unwrap();
             let _ = stream.write(&encoded);
@@ -81,10 +91,17 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // DATA: TransactionData struct
         if buf[0] == 4 {
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            // Verify MAC Tag
+            let mut my_mac = mac.clone();
+            my_mac.verify(&td.token.mac_tag[..]);
+            // ==============================================================
             let now = SystemTime::now();
             let (eval_all_src, eval_all_dest) = eval_all(td.dpf_src, td.dpf_dest);
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
-            let result = same_group_val_compute(&eval_all_src, &eval_all_dest);
+            let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
+            let mut hasher = Sha256::new();
+            hasher.update(bincode::serialize(&w1).unwrap());
+            let result = hasher.finalize();
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
@@ -98,7 +115,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // let corshare_2 = sketch_at(); // TODO. Result of 1st step of sketching protocol
             let package = TransactionPackage {
                     strin: "Server1",
-                    gp_val_ver: result.clone(),
+                    gp_val_ver: (&result[..]).to_vec(),
                     com_x: com_x,
                     com_ix: com_ix,
                     g_r2: g_r2,
@@ -107,8 +124,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
             let mut key: Vec<u8> = Vec::new();
-            key.push(1u8);
-            key.push(5u8);
+            key.extend([1u8, 2u8]); // SERVER ID, TYPE
             key.push(td.id);
             let _ : () = con.set(key.clone(), encoded).unwrap();
             // WAIT for response
@@ -142,7 +158,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let com_i = td.com_i.decompress().expect("REASON");
             // let now = SystemTime::now();
             let (com_a, com_x) = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof).unwrap();
-            let ver = same_group_val_verify(&result, &(s2data.gp_val_ver));
+            let ver = same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
             let mut success = String::from("Transaction Processed");
             if ver != true {
                 println!("Invalid!");
@@ -178,8 +194,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             drop(guard);
             let encoded = bincode::serialize(&enc_db1).unwrap();
             let mut key: Vec<u8> = Vec::new();
-            key.push(1u8);
-            key.push(6u8);
+            key.extend([1u8, 4u8]); // SERVER ID, TYPE
             let _ : () = con.set(key.clone(), encoded).unwrap();
 
             // WAIT for response
@@ -215,7 +230,7 @@ fn redis_connect() -> redis::RedisResult<Connection> {
 
 fn main() -> io::Result<()> {
 
-    let receiver_listener = TcpListener::bind("127.0.0.1:7878").expect("Failed and bind with the sender");
+    let receiver_listener = TcpListener::bind("0.0.0.0:7878").expect("Failed and bind with the sender");
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
 
     // Initialize Server Data

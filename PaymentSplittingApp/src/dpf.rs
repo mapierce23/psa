@@ -1,5 +1,8 @@
 use crate::prg;
 use crate::Group;
+use crate::MAX_GROUP_SIZE;
+use crate::MAX_GROUP_NUM;
+use crate::DPF_DOMAIN;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -311,7 +314,7 @@ where
 
         let bit_0 = false;
         let bit_1 = true;
-        let target = (len + 1) == 7;
+        let target = (len + 1) == DPF_DOMAIN - 1;
         let (state_new_0, word_0) = self.my_eval_bit(&state, bit_0, &target);
         let (state_new_1, word_1) = self.my_eval_bit(&state, bit_1, &target);
 

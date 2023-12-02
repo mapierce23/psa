@@ -28,15 +28,16 @@ use payapp::u32_to_bits;
 use payapp::my_u32_to_bits;
 use payapp::FieldElm;
 use payapp::dpf::DPFKey;
+use payapp::MAX_GROUP_SIZE;
+use payapp::MAX_GROUP_NUM;
+use payapp::DPF_DOMAIN;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
 }
-const MAX_GROUP_SIZE: usize = 10;
-const MAX_GROUP_NUM: usize = 10;
-const DPF_DOMAIN: usize = 8;
+
 
 
 fn main() -> io::Result<( )> {
@@ -46,22 +47,23 @@ fn main() -> io::Result<( )> {
     let mut stream2 = TcpStream::connect("127.0.0.1:7879")?;
 
     // GROUP SETUP
+    // Send group creation request to the server
     let mut encoded: Vec<u8> = Vec::new();
     let prf_keys = (4u64, 5u64);
+    let key_bytes1 = rand::thread_rng().gen::<[u8; 16]>();
+    let key_bytes2 = rand::thread_rng().gen::<[u8; 16]>();
+    let prf_keys = (key_bytes1.to_vec(), key_bytes2.to_vec());
     encoded.push(1u8);
     encoded.extend(bincode::serialize(&prf_keys).unwrap());
     stream1.write(&encoded).expect("failed to write");
 
-    // Send group creation request to the server
+    // The server responds with a list of account IDs and a public key
     let mut buf = [0;8192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream1.read(&mut buf)?;
     }
-
-    // The server responds with a list of account IDs and a public key
     let (aids, pubkey): (Vec<u64>, IssuerPubKey) = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-    println!("{:?}", aids[5]);
     let creds = leader.group_setup(aids, &stream1, pubkey.clone())?;
 
     // The credential is the registration token. Each group member submits their
@@ -82,24 +84,12 @@ fn main() -> io::Result<( )> {
     // DPF Keys
     let mut count: u8 = 1;
     for i in 0..5 {
+        let now = SystemTime::now();
         let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
         let bytes = creds[5].m[3].to_bytes();
         let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
         let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
         let src = 20u32;
-        let now = SystemTime::now();
-        // let a_src = u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src);
-        // let a_dest = u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src + 3);
-        // let betas = vec![
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(0u32),
-        //     FieldElm::from(30u32),
-        //     FieldElm::from(0u32),
-        // ];
         let betas = vec![
             FieldElm::from(0u32),
             FieldElm::from(0u32),
@@ -117,7 +107,7 @@ fn main() -> io::Result<( )> {
 
         // Randomness
         // =======================================================
-        let r1_bytes = rand::thread_rng().gen::<[u8; 32]>();
+        let mut r1_bytes = rand::thread_rng().gen::<[u8; 32]>();
         let r2_bytes_1 = rand::thread_rng().gen::<[u8; 32]>();
         let r2_bytes_2 = rand::thread_rng().gen::<[u8; 32]>();
         let r3_bytes_1 = rand::thread_rng().gen::<[u8; 32]>();
@@ -146,6 +136,16 @@ fn main() -> io::Result<( )> {
         let e3 = G * ab_sc + H * r3;
         let tau = a_sc * r2;
         let ne3 = e3.clone().neg();
+        match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("{}", elapsed.as_nanos());
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
+        }
         let mut transcript = Transcript::new(b"Transaction Proof");
         let transact_pf = transaction::prove_compact(
             &mut transcript,
@@ -168,18 +168,9 @@ fn main() -> io::Result<( )> {
             },
         )
         .0;
-        match now.elapsed() {
-            Ok(elapsed) => {
-                // it prints '2'
-                println!("{}", elapsed.as_nanos());
-            }
-            Err(e) => {
-                // an error occurred!
-                println!("Error: {e:?}");
-            }
-        }
         // Package data to send to the servers 
         let transact_data1 = TransactionData {
+            token: group_token.clone(),
             id: count,
             dpf_src: keys_src[0].clone(),
             dpf_dest: keys_dest[0].clone(),
@@ -190,6 +181,7 @@ fn main() -> io::Result<( )> {
             triple_proof: transact_pf.clone(),
         };
         let transact_data2 = TransactionData {
+            token: group_token.clone(),
             id: count,
             dpf_src: keys_src[1].clone(),
             dpf_dest: keys_dest[1].clone(),
@@ -243,6 +235,7 @@ fn main() -> io::Result<( )> {
         }
         count += 1;
     }
+
     // =======================================================================
     // SETTLING REQUEST
     // =======================================================================

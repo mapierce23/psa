@@ -34,19 +34,21 @@ use crate::Group;
 use crate::coms::*;
 use crate::u32_to_bits;
 use crate::FieldElm;
+use crate::MAX_GROUP_SIZE;
+use crate::MAX_GROUP_NUM;
+use crate::DPF_DOMAIN;
 
 
 // Write pseudocode or definitions after this
+// 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
 // sign up for 992
 // Definitions: Confidentiality
 // LEFT TO DO: CODE
-// - Servers must publish commitments to vectors before revealing them
-// - Generate PRF keys randomly
-// - Verify Sketch DPF keys
-// - S1 Sending PRF key to S2
+// - Servers must publish commitments to vectors before revealing them 
+// - PRF Keys
+// - DPF Sketching
 // - Proof over Group Tokens
-// - discrepancy, challenger aware of everything honest clients are doing
-// - Get rid of unnecessary stuff in Sketch DPF keys
+// - Fix settling op
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
@@ -54,20 +56,16 @@ lazy_static! {
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
 }
 
-const MAX_GROUP_SIZE: usize = 10;
-const MAX_GROUP_NUM: usize = 10;
-const DPF_DOMAIN: usize = 9;
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GroupToken {
 	pub uid: Scalar,
-	pub cm_aid: RistrettoPoint,
+	pub cm_aid: CompressedRistretto,
 	pub mac_tag: Vec<u8>, 
 }
 
 impl GroupToken {
 
-	pub fn new(uid: Scalar, cm_aid: RistrettoPoint, mac_tag: Vec<u8>) -> GroupToken {
+	pub fn new(uid: Scalar, cm_aid: CompressedRistretto, mac_tag: Vec<u8>) -> GroupToken {
 		GroupToken { uid, cm_aid, mac_tag }
 	}
 }
@@ -93,6 +91,7 @@ pub struct GpLeaderData {
 
 #[derive(Serialize, Deserialize)]
 pub struct TransactionData { 
+	pub token: GroupToken,
 	pub id: u8,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
@@ -113,7 +112,7 @@ pub struct SettleData {
 #[derive(Serialize, Deserialize)]
 pub struct TransactionPackage<'a> {
 	pub strin: &'a str,
-    pub gp_val_ver: Vec<FieldElm>,
+    pub gp_val_ver: Vec<u8>,
     pub com_x: CompressedRistretto,
     pub com_ix: CompressedRistretto,
     pub g_r2: CompressedRistretto,
@@ -163,7 +162,7 @@ impl ServerData {
 		my_mac.update(macinput_bytes);
 		let result_bytes = (my_mac.finalize()).into_bytes();
 
-		let group_token = GroupToken::new(ver_cred.m1, ver_cred.Cm3, result_bytes.to_vec());
+		let group_token = GroupToken::new(ver_cred.m1, ver_cred.Cm3.compress(), result_bytes.to_vec());
 		return Ok(group_token);
 	}
 

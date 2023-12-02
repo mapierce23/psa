@@ -9,6 +9,7 @@ use zkp::Transcript;
 use curve25519_dalek::scalar::Scalar;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::ristretto::CompressedRistretto;
+use curve25519_dalek::ristretto::RistrettoBasepointTable;
 use curve25519_dalek::constants as dalek_constants;
 use curve25519_dalek::traits::Identity;
 use crate::Group;
@@ -18,16 +19,17 @@ use sha2::Sha512;
 use crate::sketch::SketchDPFKey;
 use std::convert::TryInto;
 use std::ops::Neg;
+use crate::MAX_GROUP_SIZE;
+use crate::MAX_GROUP_NUM;
+use crate::DPF_DOMAIN;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
+    pub static ref GEN_G_TABLE: RistrettoBasepointTable = RistrettoBasepointTable::create(&GEN_G);
+    pub static ref GEN_H_TABLE: RistrettoBasepointTable = dalek_constants::RISTRETTO_BASEPOINT_TABLE;
 }
-
-const MAX_GROUP_SIZE: usize = 10;
-const MAX_GROUP_NUM: usize = 10;
-const DPF_DOMAIN: usize = 8;
 
 // =======================================================================
 // 								   PROOFS
@@ -55,9 +57,11 @@ pub fn create_com(val: FieldElm, rand: Scalar) -> (RistrettoPoint, RistrettoPoin
 	let G: &RistrettoPoint = &GEN_G;
 	let H: &RistrettoPoint = &GEN_H;
 
+    let Gtable: &RistrettoBasepointTable = &GEN_G_TABLE;
+    let Htable: &RistrettoBasepointTable = &GEN_H_TABLE;
 	// Compute commmitment = g^val * h^rand
-	let com = G * val.value + H * rand;
-	let g_r = G * rand;
+	let com = &val.value * Gtable + &rand * Htable;
+	let g_r = &rand * Gtable;
 	return (com, g_r);
 }
 // INPUT: a DPF key representing index ALPHA and value BETA
@@ -106,7 +110,7 @@ pub fn eval_all(keyb_s: SketchDPFKey<FieldElm, FieldElm>, keyb_d: SketchDPFKey<F
 
 // S1 & S2
 // Should produce a share of the all-zero vector of length N, where N is the num of groups
-pub fn same_group_val_compute(eval_all_src: &Vec<FieldElm>, eval_all_dest: &Vec<FieldElm>) -> Vec<FieldElm> {
+pub fn same_group_val_compute(eval_all_src: &Vec<FieldElm>, eval_all_dest: &Vec<FieldElm>, server1: bool) -> Vec<FieldElm> {
 	let mut result = Vec::<FieldElm>::new();
 	for i in 0..MAX_GROUP_NUM {
 		let mut sum_src = FieldElm::zero();
@@ -118,18 +122,19 @@ pub fn same_group_val_compute(eval_all_src: &Vec<FieldElm>, eval_all_dest: &Vec<
 		}
 		diff.add(&sum_src);
 		diff.sub(&sum_dest);
+		if server1 {
+			diff.negate();
+		}
 		result.push(diff);
 	}
 	return result;
 }
 
 // S1 ONLY
-pub fn same_group_val_verify(result_1: &Vec<FieldElm>, result_2: &Vec<FieldElm>) -> bool {
+pub fn same_group_val_verify(result_1: &Vec<u8>, result_2: &Vec<u8>) -> bool {
 	for i in 0..MAX_GROUP_NUM {
-		let mut sum = FieldElm::zero();
-		sum.add(&result_1[i]);
-		sum.add(&result_2[i]);
-		if sum != FieldElm::zero() {
+		let mut sum = result_1[i] - result_2[i];
+		if sum != 0 {
 			return false;
 		}
 	}
