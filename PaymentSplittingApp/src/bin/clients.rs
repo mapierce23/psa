@@ -100,7 +100,7 @@ fn make_transactions(start: u8, tokens: Vec<GroupTokenPriv>) -> io::Result<( )>{
     }
 
     let mut count: u8 = start;
-    for i in 0..tokens.len() {
+    for i in 0..1 {
         let bytes = tokens[i].aid.to_bytes();
         let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
         let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
