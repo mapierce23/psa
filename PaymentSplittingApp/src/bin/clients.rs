@@ -333,6 +333,10 @@ fn main() -> io::Result<( )> {
     let handle2 = thread::spawn(move || {make_transactions(10, client2)});
     let handle3 = thread::spawn(move || {make_transactions(20, client3)});
     let handle4 = thread::spawn(move || {make_transactions(30, client4)});
+    handle1.join().unwrap();
+    handle2.join().unwrap();
+    handle3.join().unwrap();
+    handle4.join().unwrap();
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
@@ -343,11 +347,6 @@ fn main() -> io::Result<( )> {
             println!("Error: {e:?}");
         }
     }
-    handle1.join().unwrap();
-    handle2.join().unwrap();
-    handle3.join().unwrap();
-    handle4.join().unwrap();
-
     // =========================================================================
     Ok(())
 }
