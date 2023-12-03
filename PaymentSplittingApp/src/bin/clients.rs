@@ -329,10 +329,16 @@ fn main() -> io::Result<( )> {
     client4.push(priv_tokens3[4].clone());
 
     let now = SystemTime::now();
-    let handle1 = thread::spawn(move || {make_transactions(0, client1)});
-    let handle2 = thread::spawn(move || {make_transactions(10, client2)});
-    let handle3 = thread::spawn(move || {make_transactions(20, client3)});
-    let handle4 = thread::spawn(move || {make_transactions(30, client4)});
+    for i in 0..30 {
+        let handle1 = thread::spawn(move || {make_transactions(i, client1)});
+        let handle2 = thread::spawn(move || {make_transactions(i + 30, client2)});
+        let handle3 = thread::spawn(move || {make_transactions(i + 60, client3)});
+        let handle4 = thread::spawn(move || {make_transactions(i + 90, client4)});
+        thread_vec.push(handle1);
+        thread_vec.push(handle1);
+        thread_vec.push(handle1);
+        thread_vec.push(handle1);
+    }
     handle1.join().unwrap();
     handle2.join().unwrap();
     handle3.join().unwrap();
