@@ -43,7 +43,7 @@ lazy_static! {
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
 
     let mut leader = GpLeaderData::new(MAX_GROUP_SIZE);
-    let mut stream1 = TcpStream::connect("127.0.0.1:7878")?;
+    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
 
     // GROUP SETUP
     // Send group creation request to the server
@@ -216,8 +216,8 @@ fn prepare_transaction(start: u8, tokens: Vec<GroupTokenPriv>) -> (TransactionDa
 
 fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
 
-    let mut stream1 = TcpStream::connect("127.0.0.1:7878")?;
-    let mut stream2 = TcpStream::connect("127.0.0.1:7879")?;
+    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
+    let mut stream2 = TcpStream::connect("10.142.0.2:7879")?;
 
     // Send to S1
     let mut encoded1: Vec<u8> = Vec::new();
