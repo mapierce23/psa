@@ -236,7 +236,7 @@ fn redis_connect() -> redis::RedisResult<Connection> {
 fn main() -> io::Result<()> {
 
     // Establish TCP Connection
-    let receiver_listener = TcpListener::bind("127.0.0.1:7879").expect("Failed and bind with the sender");
+    let receiver_listener = TcpListener::bind("0.0.0.0:7879").expect("Failed and bind with the sender");
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
 
     // Initialize Server Data
