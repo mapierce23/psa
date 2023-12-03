@@ -363,7 +363,7 @@ fn main() -> io::Result<( )> {
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
-            println!("{}", elapsed.as_secs());
+            println!("{}", elapsed.as_nanos());
         }
         Err(e) => {
             // an error occurred!
