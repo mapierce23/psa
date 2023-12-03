@@ -90,160 +90,162 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     Ok(tokens)
 }
 
-fn make_transactions(start: u8, tokens: Vec<GroupTokenPriv>) -> io::Result<( )>{
+fn prepare_transaction(start: u8, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionData) {
 
-    let mut stream1 = TcpStream::connect("10.142.0.2:7878")?;
-    let mut stream2 = TcpStream::connect("10.138.0.2:7879")?;
     let mut my_tokens = Vec::<GroupToken>::new();
     for j in 0..tokens.len() {
         my_tokens.push(tokens[j].token.clone());
     }
-
     let mut count: u8 = start;
-    for i in 0..1 {
-        let bytes = tokens[i].aid.to_bytes();
-        let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
-        let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
-        let betas = vec![
-            FieldElm::from(0u32),
-            FieldElm::from(0u32),
-            FieldElm::from(0u32),
-            FieldElm::from(0u32),
-            FieldElm::from(0u32),
-            FieldElm::from(0u32),
-            FieldElm::from(20u32),
-        ];
-        let a_src = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src);
-        let a_dest = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src + 3);
-        let beta_last = FieldElm::from(0u32);
-        let keys_src = SketchDPFKey::gen(&a_src, &betas, &beta_last);
-        let keys_dest = SketchDPFKey::gen(&a_dest, &betas, &beta_last);
-        // Randomness
-        // =======================================================
-        let mut rng = rand::thread_rng();
-        let r1 = Scalar::random(&mut rng);
-        let r2_1 = Scalar::random(&mut rng);
-        let r2_2 = Scalar::random(&mut rng);
-        let r2 = r2_1 + r2_2;
-        let r3_1 = Scalar::random(&mut rng);
-        let r3_2 = Scalar::random(&mut rng);
-        let r3 = r3_1 + r3_2;
-        // =======================================================
-        let G: &RistrettoPoint = &GEN_G;
-        let H: &RistrettoPoint = &GEN_H;
-        let nG = G.clone().neg();
-        let nH = H.clone().neg();
-        let id = Scalar::one();
-        let a_sc = Scalar::from(src);
-        let b_sc = Scalar::from(20u32);
-        let v1 = G * r1;
-        let v2 = G * r2;
-        let v3 = G * r3;
-        let e1 = G * a_sc + H * r1;
-        let e2 = G * b_sc + H * r2;
-        let ab_sc = a_sc * b_sc;
-        let e3 = G * ab_sc + H * r3;
-        let tau = a_sc * r2;
-        let ne3 = e3.clone().neg();
-        let mut transcript = Transcript::new(b"Transaction Proof");
-        let transact_pf = transaction::prove_compact(
-            &mut transcript,
-            transaction::ProveAssignments {
-                G: &G,
-                H: &H,
-                nG: &nG,
-                nH: &nH,
-                v1: &v1,
-                v2: &v2,
-                v3: &v3,
-                e1: &e1,
-                e2: &e2,
-                ne3: &ne3,
-                r1: &r1,
-                r3: &r3,
-                a: &a_sc,
-                id: &id,
-                tau: &tau,
-            },
-        )
-        .0;
-        let token_ci = tokens[i].token.cm_aid.decompress().expect("REASON");
-        let token_P = tokens[i].token.P.decompress().expect("REASON");
-        let mut transcript = Transcript::new(b"Group Token Proof");
-        let token_pf = token::prove_compact(
-            &mut transcript,
-            token::ProveAssignments {
-                G: &G,
-                H: &H,
-                P: &token_P,
-                Ti: &token_ci,
-                Ci: &e1,
-                i: &a_sc,
-                rt: &tokens[i].z3,
-                rc: &r1,
-            },
-        )
-        .0;
-        // Package data to send to the servers 
-        let transact_data1 = TransactionData {
-            tokens: my_tokens.clone(),
-            id: count,
-            dpf_src: keys_src[0].clone(),
-            dpf_dest: keys_dest[0].clone(),
-            g_r1: v1.compress(),
-            r2: r2_1,
-            r3: r3_1,
-            com_i: e1.compress(),
-            triple_proof: transact_pf.clone(),
-            token_proof: token_pf.clone(),
-        };
-        let transact_data2 = TransactionData {
-            tokens: my_tokens.clone(),
-            id: count,
-            dpf_src: keys_src[1].clone(),
-            dpf_dest: keys_dest[1].clone(),
-            g_r1: v1.compress(),
-            r2: r2_2,
-            r3: r3_2,
-            com_i: e1.compress(),
-            triple_proof: transact_pf.clone(),
-            token_proof: token_pf.clone(),
-        };
-        // Send to S1
-        let mut encoded1: Vec<u8> = Vec::new();
-        encoded1.push(4u8);
-        encoded1.extend(bincode::serialize(&transact_data1).unwrap());
-        stream1.write(&encoded1).expect("failed to write");
-        // Send to S2
-        let mut encoded2: Vec<u8> = Vec::new();
-        encoded2.push(4u8);
-        encoded2.extend(bincode::serialize(&transact_data2).unwrap());
-        stream2.write(&encoded2).expect("failed to write");
+    let bytes = tokens[0].aid.to_bytes();
+    let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
+    let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
+    let betas = vec![
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(20u32),
+    ];
+    let a_src = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src);
+    let a_dest = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src + 3);
+    let beta_last = FieldElm::from(0u32);
+    let keys_src = SketchDPFKey::gen(&a_src, &betas, &beta_last);
+    let keys_dest = SketchDPFKey::gen(&a_dest, &betas, &beta_last);
+    // Randomness
+    // =======================================================
+    let mut rng = rand::thread_rng();
+    let r1 = Scalar::random(&mut rng);
+    let r2_1 = Scalar::random(&mut rng);
+    let r2_2 = Scalar::random(&mut rng);
+    let r2 = r2_1 + r2_2;
+    let r3_1 = Scalar::random(&mut rng);
+    let r3_2 = Scalar::random(&mut rng);
+    let r3 = r3_1 + r3_2;
+    // =======================================================
+    let G: &RistrettoPoint = &GEN_G;
+    let H: &RistrettoPoint = &GEN_H;
+    let nG = G.clone().neg();
+    let nH = H.clone().neg();
+    let id = Scalar::one();
+    let a_sc = Scalar::from(src);
+    let b_sc = Scalar::from(20u32);
+    let v1 = G * r1;
+    let v2 = G * r2;
+    let v3 = G * r3;
+    let e1 = G * a_sc + H * r1;
+    let e2 = G * b_sc + H * r2;
+    let ab_sc = a_sc * b_sc;
+    let e3 = G * ab_sc + H * r3;
+    let tau = a_sc * r2;
+    let ne3 = e3.clone().neg();
+    let mut transcript = Transcript::new(b"Transaction Proof");
+    let transact_pf = transaction::prove_compact(
+        &mut transcript,
+        transaction::ProveAssignments {
+            G: &G,
+            H: &H,
+            nG: &nG,
+            nH: &nH,
+            v1: &v1,
+            v2: &v2,
+            v3: &v3,
+            e1: &e1,
+            e2: &e2,
+            ne3: &ne3,
+            r1: &r1,
+            r3: &r3,
+            a: &a_sc,
+            id: &id,
+            tau: &tau,
+        },
+    )
+    .0;
+    let token_ci = tokens[0].token.cm_aid.decompress().expect("REASON");
+    let token_P = tokens[0].token.P.decompress().expect("REASON");
+    let mut transcript = Transcript::new(b"Group Token Proof");
+    let token_pf = token::prove_compact(
+        &mut transcript,
+        token::ProveAssignments {
+            G: &G,
+            H: &H,
+            P: &token_P,
+            Ti: &token_ci,
+            Ci: &e1,
+            i: &a_sc,
+            rt: &tokens[0].z3,
+            rc: &r1,
+        },
+    )
+    .0;
+    // Package data to send to the servers 
+    let transact_data1 = TransactionData {
+        tokens: my_tokens.clone(),
+        id: count,
+        dpf_src: keys_src[0].clone(),
+        dpf_dest: keys_dest[0].clone(),
+        g_r1: v1.compress(),
+        r2: r2_1,
+        r3: r3_1,
+        com_i: e1.compress(),
+        triple_proof: transact_pf.clone(),
+        token_proof: token_pf.clone(),
+    };
+    let transact_data2 = TransactionData {
+        tokens: my_tokens.clone(),
+        id: count,
+        dpf_src: keys_src[1].clone(),
+        dpf_dest: keys_dest[1].clone(),
+        g_r1: v1.compress(),
+        r2: r2_2,
+        r3: r3_2,
+        com_i: e1.compress(),
+        triple_proof: transact_pf.clone(),
+        token_proof: token_pf.clone(),
+    };
 
-        // Make sure transaction was valid 
-        let mut buf = [0;8192];
-        let mut bytes_read = 0;
-        while bytes_read == 0 {
-            bytes_read = stream1.read(&mut buf)?;
-        }
-        let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-        if msg != String::from("Transaction Processed") {
-            println!("Uh oh! Submitted invalid transaction.");
-        }
-        let mut buf = [0;8192];
-        let mut bytes_read = 0;
-        while bytes_read == 0 {
-            bytes_read = stream2.read(&mut buf)?;
-        }
-        let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-        if msg != String::from("Transaction Processed") {
-            println!("Uh oh! Submitted invalid transaction.");
-        }
-        count += 1;
+    (transact_data1, transact_data2)
+}
+
+fn send_transaction(transact_data1: TransactionData, transact_data2: TransactionData) -> io::Result<( )>{
+
+    let mut stream1 = TcpStream::connect("10.142.0.2:7878")?;
+    let mut stream2 = TcpStream::connect("10.138.0.2:7879")?;
+
+    // Send to S1
+    let mut encoded1: Vec<u8> = Vec::new();
+    encoded1.push(4u8);
+    encoded1.extend(bincode::serialize(&transact_data1).unwrap());
+    stream1.write(&encoded1).expect("failed to write");
+    // Send to S2
+    let mut encoded2: Vec<u8> = Vec::new();
+    encoded2.push(4u8);
+    encoded2.extend(bincode::serialize(&transact_data2).unwrap());
+    stream2.write(&encoded2).expect("failed to write");
+
+    // Make sure transaction was valid 
+    let mut buf = [0;8192];
+    let mut bytes_read = 0;
+    while bytes_read == 0 {
+        bytes_read = stream1.read(&mut buf)?;
+    }
+    let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+    if msg != String::from("Transaction Processed") {
+        println!("Uh oh! Submitted invalid transaction.");
+    }
+    let mut buf = [0;8192];
+    let mut bytes_read = 0;
+    while bytes_read == 0 {
+        bytes_read = stream2.read(&mut buf)?;
+    }
+    let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+    if msg != String::from("Transaction Processed") {
+        println!("Uh oh! Submitted invalid transaction.");
     }
     Ok(())
 }
-
 // fn settle(gptoken: GroupTokenPriv, group_num) {
 //     println!("Settling Group #{:?}", group_num);
 //     // DPF Key generation
@@ -328,20 +330,32 @@ fn main() -> io::Result<( )> {
     client4.push(priv_tokens2[3].clone());
     client4.push(priv_tokens3[4].clone());
 
+    let (tdata1_1, tdata1_2) = prepare_transaction(0, client1.clone());
+    let (tdata2_1, tdata2_2) = prepare_transaction(10, client2.clone());
+    let (tdata3_1, tdata3_2) = prepare_transaction(20, client3.clone());
+    let (tdata4_1, tdata4_2) = prepare_transaction(30, client4.clone());
+    let (tdata5_1, tdata5_2) = prepare_transaction(40, client1);
+    let (tdata6_1, tdata6_2) = prepare_transaction(50, client2);
+    let (tdata7_1, tdata7_2) = prepare_transaction(60, client3);
+    let (tdata8_1, tdata8_2) = prepare_transaction(70, client4);
+
     let now = SystemTime::now();
-    for i in 0..30 {
-        let handle1 = thread::spawn(move || {make_transactions(i, client1)});
-        let handle2 = thread::spawn(move || {make_transactions(i + 30, client2)});
-        let handle3 = thread::spawn(move || {make_transactions(i + 60, client3)});
-        let handle4 = thread::spawn(move || {make_transactions(i + 90, client4)});
-        thread_vec.push(handle1);
-        thread_vec.push(handle1);
-        thread_vec.push(handle1);
-        thread_vec.push(handle1);
-    }
-    for handle in thread_vec {
-        handle.join().unwrap();
-    }
+    let handle1 = thread::spawn(move || {send_transaction(tdata1_1, tdata1_2)});
+    let handle2 = thread::spawn(move || {send_transaction(tdata2_1, tdata2_2)});
+    let handle3 = thread::spawn(move || {send_transaction(tdata3_1, tdata3_2)});
+    let handle4 = thread::spawn(move || {send_transaction(tdata4_1, tdata4_2)});
+    let handle5 = thread::spawn(move || {send_transaction(tdata5_1, tdata5_2)});
+    let handle6 = thread::spawn(move || {send_transaction(tdata6_1, tdata6_2)});
+    let handle7 = thread::spawn(move || {send_transaction(tdata7_1, tdata7_2)});
+    let handle8 = thread::spawn(move || {send_transaction(tdata8_1, tdata8_2)});
+    handle1.join().unwrap();
+    handle2.join().unwrap();
+    handle3.join().unwrap();
+    handle4.join().unwrap();
+    handle5.join().unwrap();
+    handle6.join().unwrap();
+    handle7.join().unwrap();
+    handle8.join().unwrap();
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
@@ -352,6 +366,7 @@ fn main() -> io::Result<( )> {
             println!("Error: {e:?}");
         }
     }
+
     // =========================================================================
     Ok(())
 }
