@@ -4,6 +4,7 @@
 #![allow(unused_variables)]
 use std::net::TcpStream;
 use std::io::{self, Read, Write};
+use crate::io::Error;
 use std::thread;
 use zkp::CompactProof;
 use zkp::ProofError;
@@ -42,7 +43,7 @@ lazy_static! {
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
 
     let mut leader = GpLeaderData::new(MAX_GROUP_SIZE);
-    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
+    let mut stream1 = TcpStream::connect("127.0.0.1:7878")?;
 
     // GROUP SETUP
     // Send group creation request to the server
@@ -56,7 +57,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     stream1.write(&encoded).expect("failed to write");
 
     // The server responds with a list of account IDs and a public key
-    let mut buf = [0;8192];
+    let mut buf = [0;10192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream1.read(&mut buf)?;
@@ -73,7 +74,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
         encoded.push(3u8);
         encoded.extend(bincode::serialize(&showmsg).unwrap());
         stream1.write(&encoded).expect("failed to write");
-        let mut buf = [0;8192];
+        let mut buf = [0;10192];
         let mut bytes_read = 0;
         while bytes_read == 0 {
             bytes_read = stream1.read(&mut buf)?;
@@ -101,6 +102,10 @@ fn prepare_transaction(start: u8, tokens: Vec<GroupTokenPriv>) -> (TransactionDa
     let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
     let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
     let betas = vec![
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
         FieldElm::from(0u32),
         FieldElm::from(0u32),
         FieldElm::from(0u32),
@@ -209,10 +214,10 @@ fn prepare_transaction(start: u8, tokens: Vec<GroupTokenPriv>) -> (TransactionDa
     (transact_data1, transact_data2)
 }
 
-fn send_transaction(transact_data1: TransactionData, transact_data2: TransactionData) -> io::Result<( )>{
+fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
 
-    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
-    let mut stream2 = TcpStream::connect("10.142.0.2:7879")?;
+    let mut stream1 = TcpStream::connect("127.0.0.1:7878")?;
+    let mut stream2 = TcpStream::connect("127.0.0.1:7879")?;
 
     // Send to S1
     let mut encoded1: Vec<u8> = Vec::new();
@@ -226,7 +231,7 @@ fn send_transaction(transact_data1: TransactionData, transact_data2: Transaction
     stream2.write(&encoded2).expect("failed to write");
 
     // Make sure transaction was valid 
-    let mut buf = [0;8192];
+    let mut buf = [0;10192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream1.read(&mut buf)?;
@@ -235,7 +240,7 @@ fn send_transaction(transact_data1: TransactionData, transact_data2: Transaction
     if msg != String::from("Transaction Processed") {
         println!("Uh oh! Submitted invalid transaction.");
     }
-    let mut buf = [0;8192];
+    let mut buf = [0;10192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream2.read(&mut buf)?;
@@ -303,7 +308,7 @@ fn send_transaction(transact_data1: TransactionData, transact_data2: Transaction
 fn main() -> io::Result<( )> {
 
     // Setup 5 Groups
-    let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
+    let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
     let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
     let priv_tokens3 = setup_group(MAX_GROUP_SIZE).unwrap();
@@ -330,36 +335,35 @@ fn main() -> io::Result<( )> {
     client4.push(priv_tokens2[3].clone());
     client4.push(priv_tokens3[4].clone());
 
-    let (tdata1_1, tdata1_2) = prepare_transaction(0, client1.clone());
-    let (tdata2_1, tdata2_2) = prepare_transaction(10, client2.clone());
-    let (tdata3_1, tdata3_2) = prepare_transaction(20, client3.clone());
-    let (tdata4_1, tdata4_2) = prepare_transaction(30, client4.clone());
-    let (tdata5_1, tdata5_2) = prepare_transaction(40, client1);
-    let (tdata6_1, tdata6_2) = prepare_transaction(50, client2);
-    let (tdata7_1, tdata7_2) = prepare_transaction(60, client3);
-    let (tdata8_1, tdata8_2) = prepare_transaction(70, client4);
+    let mut tdatavec = Vec::<(TransactionData, TransactionData)>::new();
+
+    for i in 0..50 {
+        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone());
+        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone());
+        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone());
+        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone());
+        tdatavec.push((tdata1_1, tdata1_2));
+        tdatavec.push((tdata2_1, tdata2_2));
+        tdatavec.push((tdata3_1, tdata3_2));
+        tdatavec.push((tdata4_1, tdata4_2));     
+    }
 
     let now = SystemTime::now();
-    let handle1 = thread::spawn(move || {send_transaction(tdata1_1, tdata1_2)});
-    let handle2 = thread::spawn(move || {send_transaction(tdata2_1, tdata2_2)});
-    let handle3 = thread::spawn(move || {send_transaction(tdata3_1, tdata3_2)});
-    let handle4 = thread::spawn(move || {send_transaction(tdata4_1, tdata4_2)});
-    let handle5 = thread::spawn(move || {send_transaction(tdata5_1, tdata5_2)});
-    let handle6 = thread::spawn(move || {send_transaction(tdata6_1, tdata6_2)});
-    let handle7 = thread::spawn(move || {send_transaction(tdata7_1, tdata7_2)});
-    let handle8 = thread::spawn(move || {send_transaction(tdata8_1, tdata8_2)});
-    handle1.join().unwrap();
-    handle2.join().unwrap();
-    handle3.join().unwrap();
-    handle4.join().unwrap();
-    handle5.join().unwrap();
-    handle6.join().unwrap();
-    handle7.join().unwrap();
-    handle8.join().unwrap();
+    for i in 0..200 {
+        let now_s = SystemTime::now();
+        let td1 = (tdatavec[i].0).clone();
+        let td2 = (tdatavec[i].1).clone();
+        let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
+        thread_vec.push(handle);
+    }
+
+    for handle in thread_vec {
+        handle.join().unwrap();
+    }
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
-            println!("{}", elapsed.as_nanos());
+            println!("{}", elapsed.as_secs());
         }
         Err(e) => {
             // an error occurred!

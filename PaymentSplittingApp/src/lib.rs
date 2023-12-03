@@ -17,8 +17,8 @@ pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
 pub const MAX_GROUP_SIZE: usize = 10;
-pub const MAX_GROUP_NUM: usize = 10;
-pub const DPF_DOMAIN: usize = 8;
+pub const MAX_GROUP_NUM: usize = 200;
+pub const DPF_DOMAIN: usize = 12; // 9 = 256
 
 // Additive group, such as (Z_n, +)
 pub trait Group {

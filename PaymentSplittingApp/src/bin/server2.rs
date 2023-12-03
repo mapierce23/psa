@@ -42,7 +42,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
     for _ in 0..1000 {
 
         // Remaining bytes is the type of request & the request itself
-        let mut buf = [0;8192];
+        let mut buf = [0;10192];
         let bytes_read = stream.read(&mut buf)?;
 
         if bytes_read == 0 {
@@ -227,7 +227,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
 }
 
 fn redis_connect() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("redis://10.142.0.2:6379/")?;
+    let client = redis::Client::open("redis://127.0.0.1/")?;
     let con = client.get_connection()?;
 
     Ok(con)
@@ -236,7 +236,7 @@ fn redis_connect() -> redis::RedisResult<Connection> {
 fn main() -> io::Result<()> {
 
     // Establish TCP Connection
-    let receiver_listener = TcpListener::bind("0.0.0.0:7879").expect("Failed and bind with the sender");
+    let receiver_listener = TcpListener::bind("127.0.0.1:7879").expect("Failed and bind with the sender");
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
 
     // Initialize Server Data

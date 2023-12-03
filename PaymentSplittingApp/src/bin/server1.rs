@@ -36,7 +36,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
     for _ in 0..1000 {
 
         // Remaining bytes is the type of request & the request itself
-        let mut buf = [0;8192];
+        let mut buf = [0;10192];
         let bytes_read = stream.read(&mut buf)?;
 
         if bytes_read == 0 {
@@ -186,16 +186,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
             }
-            match now.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
         }
@@ -250,7 +240,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 }
 
 fn redis_connect() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("redis://10.142.0.2:6379")?;
+    let client = redis::Client::open("redis://127.0.0.1:6379")?;
     let con = client.get_connection()?;
 
     Ok(con)
@@ -281,7 +271,6 @@ fn main() -> io::Result<()> {
     let mac = HmacSha256::new_varkey(&random_bytes).expect("HMAC can take key of any size");
 
     for stream in receiver_listener.incoming() {
-        println!("New Stream!");
         let stream = stream.expect("failed");
         let counter = counter.clone();
         let database = database.clone();

@@ -78,7 +78,7 @@ pub struct GpLeaderData {
 	gp_size: usize,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TransactionData { 
 	pub tokens: Vec<GroupToken>,
 	pub id: u8,
@@ -188,7 +188,7 @@ impl ServerData {
 	pub fn settle(enc_db1: &Vec<FieldElm>, enc_db2: &Vec<FieldElm>, keyb: &DPFKey<FieldElm, FieldElm>) -> Vec<FieldElm> {
 
 		let mut enc_db = Vec::<FieldElm>::new();
-		for i in 0..100 {
+		for i in 0..MAX_GROUP_SIZE * MAX_GROUP_NUM {
 			let mut sum = FieldElm::zero();
 			sum.add(&enc_db1[i]);
 			sum.add(&enc_db2[i]);
@@ -248,7 +248,7 @@ impl GpLeaderData {
 		encoded.extend(bincode::serialize(&reqs).unwrap());
 		println!("{:?}", encoded.len());
 		let _ = stream.write(&encoded);
-		let mut buf = [0;8196];
+		let mut buf = [0;10196];
 		let mut bytes_read = 0;
 		while bytes_read == 0 {
 			bytes_read = stream.read(&mut buf)?;

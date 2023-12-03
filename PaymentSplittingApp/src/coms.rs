@@ -166,7 +166,7 @@ pub fn same_group_val_compute(eval_all_src: &Vec<FieldElm>, eval_all_dest: &Vec<
 
 // S1 ONLY
 pub fn same_group_val_verify(result_1: &Vec<u8>, result_2: &Vec<u8>) -> bool {
-	for i in 0..MAX_GROUP_NUM {
+	for i in 0..result_1.len() {
 		let sum = result_1[i] - result_2[i];
 		if sum != 0 {
 			return false;
