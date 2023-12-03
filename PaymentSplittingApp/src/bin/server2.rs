@@ -227,7 +227,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
 }
 
 fn redis_connect() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("redis://127.0.0.1/")?;
+    let client = redis::Client::open("redis://10.138.0.2/")?;
     let con = client.get_connection()?;
 
     Ok(con)
