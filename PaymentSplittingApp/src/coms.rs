@@ -126,7 +126,7 @@ pub fn compute_coms_from_dpf(
 	return (com_beta.compress(), com_lam.compress(), g_rb.compress(), g_rl.compress());
 }
 
-pub fn eval_all(keyb_s: SketchDPFKey<FieldElm, FieldElm>, keyb_d: SketchDPFKey<FieldElm, FieldElm>) -> (Vec<FieldElm>, Vec<FieldElm>) {
+pub fn eval_all(keyb_s: &SketchDPFKey<FieldElm, FieldElm>, keyb_d: &SketchDPFKey<FieldElm, FieldElm>) -> (Vec<(FieldElm, FieldElm)>, Vec<(FieldElm, FieldElm)>, Vec<FieldElm>, Vec<FieldElm>) {
 	let mut eval_vec_src = Vec::<FieldElm>::new();
 	let mut eval_vec_dest = Vec::<FieldElm>::new();
 
@@ -139,7 +139,7 @@ pub fn eval_all(keyb_s: SketchDPFKey<FieldElm, FieldElm>, keyb_d: SketchDPFKey<F
 		eval_vec_src.push(eval_elm_s);
 		eval_vec_dest.push(eval_elm_d);
 	}
-	return (eval_vec_src, eval_vec_dest);
+	return (eval_vec_s, eval_vec_d, eval_vec_src, eval_vec_dest);
 }
 
 // S1 & S2

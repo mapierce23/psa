@@ -6,7 +6,6 @@ pub mod dpf;
 pub mod coms;
 pub mod ps;
 pub mod prg;
-pub mod fastfield;
 pub mod mpc;
 pub mod sketch;
 mod field;

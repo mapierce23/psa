@@ -24,6 +24,8 @@ use crate::sketch::SketchDPFKey;
 
 use crate::ggm::*;
 use crate::dpf::*;
+use crate::sketch::*;
+use crate::mpc::*;
 use crate::Group;
 use crate::u32_to_bits;
 use crate::FieldElm;
@@ -36,7 +38,6 @@ use crate::DPF_DOMAIN;
 // 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
 // sign up for 992
 // LEFT TO DO: CODE
-// - DPF Sketching
 // - Transaction ID protocol
 
 lazy_static! {
@@ -52,7 +53,7 @@ pub struct GroupToken {
 	pub cm_aid: CompressedRistretto,
 	pub mac_tag: Vec<u8>, 
 }
-
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GroupTokenPriv {
 	pub prf_keys: (Vec<u8>, Vec<u8>),
 	pub token: GroupToken,
@@ -105,6 +106,8 @@ pub struct TransactionPackage<'a> {
     pub com_ix: CompressedRistretto,
     pub g_r2: CompressedRistretto,
     pub g_r3: CompressedRistretto,
+    pub cshare_s: CorShare<FieldElm>,
+    pub cshare_d: CorShare<FieldElm>,
 }
 
 impl ServerData {

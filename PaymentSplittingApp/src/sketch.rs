@@ -1,7 +1,3 @@
-#![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 use crate::dpf;
 use crate::mpc;
 
@@ -22,7 +18,9 @@ pub struct SketchDPFKey<T, U> {
     pub mac_key_last: U,
     pub mac_key2_last: U,
     pub key: dpf::DPFKey<(T, T), (U, U)>,
+
     pub triples: Vec<mpc::TripleShare<T>>,
+    pub triples_last: Vec<mpc::TripleShare<U>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -84,6 +82,7 @@ where
         //      (a, a^2, x, a.x).
         let mac_key = T::random();
         let (mac_key_sh0, mac_key_sh1) = mac_key.share();
+        
 
         let mut mac_key2 = mac_key.clone();
         mac_key2.mul(&mac_key);
@@ -119,6 +118,14 @@ where
             triples1.push(t[1].clone());
         }
 
+        let mut triples0_last = vec![];
+        let mut triples1_last = vec![];
+        for _i in 0..TRIPLES_PER_LEVEL {
+            let t = mpc::TripleShare::new();
+            triples0_last.push(t[0].clone());
+            triples1_last.push(t[1].clone());
+        }
+
 
         [
             SketchDPFKey {
@@ -127,7 +134,8 @@ where
                 mac_key_last: mac_key_sh0_last,
                 mac_key2_last: mac_key2_sh0_last,
                 key: dpf_key0,
-                triples: triples0
+                triples: triples0,
+                triples_last: triples0_last
             },
             SketchDPFKey {
                 mac_key: mac_key_sh1,
@@ -135,7 +143,8 @@ where
                 mac_key_last: mac_key_sh1_last,
                 mac_key2_last: mac_key2_sh1_last,
                 key: dpf_key1,
-                triples: triples1
+                triples: triples1,
+                triples_last: triples1_last
             },
         ]
     }
@@ -152,6 +161,7 @@ where
         rand_stream: &mut impl rand::Rng,
     ) -> SketchOutput<T> {
         let mut out: SketchOutput<T> = SketchOutput::zero();
+
         out.rand1.from_rng(rand_stream);
         out.rand2.from_rng(rand_stream);
         out.rand3.from_rng(rand_stream);
@@ -171,8 +181,10 @@ where
             //          <r, k.x> 
 
             let (x, kx) = v;
+
             let mut tmp0 = x.clone();
             tmp0.mul_lazy(&sketch_r);
+
             let mut tmp1 = x.clone();
             tmp1.mul_lazy(&sketch_r2);
 

@@ -1,7 +1,3 @@
-#![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 use crate::sketch;
 use serde::Deserialize;
 use serde::Serialize;
@@ -88,18 +84,12 @@ where
         triples: Vec<TripleShare<T>>,
         mac_key: &T,
         mac_key2: &T,
-        val_share: &T,
         sketch: &sketch::SketchOutput<T>,
-        level: usize,
     ) -> MulState<T> {
-        debug_assert!((level + 1) * sketch::TRIPLES_PER_LEVEL <= triples.len());
-
-        let trip_start = level * sketch::TRIPLES_PER_LEVEL;
-        let trip_end = trip_start + sketch::TRIPLES_PER_LEVEL;
 
         let mut out = MulState {
             server_idx,
-            triples: triples[trip_start..trip_end].to_vec(),
+            triples: triples,
 
             xs: Vec::with_capacity(sketch::TRIPLES_PER_LEVEL),
             ys: Vec::with_capacity(sketch::TRIPLES_PER_LEVEL),
@@ -110,36 +100,32 @@ where
 
         // 1) Check original sketch would have accepted.
         //      <r,x>^2 - <r^2,x> =? 0
+        out.xs.push(sketch.r_x.clone());
+        out.ys.push(sketch.r_x.clone());
 
-        out.xs.push(val_share.clone());
-        out.ys.push(val_share.clone());
-
-        let mut c0 = sketch.r_x.clone();
+        let mut c0 = sketch.r2_x.clone();
         c0.negate();
-        // ADDING
-        out.zs.push(T::zero());
+        out.zs.push(c0);
 
         // 2) Check MAC values are correct.
         //    For linear query q, vector x, MAC key k
         //          (<q, kx> + k^2) - k^2 - k*<q,x> == 0?
 
         //   2a) Check that k^2 - k*k = 0
-        // let mut mac_key2_neg = mac_key2.clone();
-        // mac_key2_neg.negate();
-        let mut val_neg = val_share.clone();
-        val_neg.negate();
-        out.xs.push(val_share.clone());
-        out.ys.push(val_neg.clone());
-        out.zs.push(T::zero());
+        let mut mac_key2_neg = mac_key2.clone();
+        mac_key2_neg.negate();
 
+        out.xs.push(mac_key.clone());
+        out.ys.push(mac_key.clone());
+        out.zs.push(mac_key2_neg);
 
         //   2b) Check k <r,x> - <r, kx> = 0
-        out.xs.push(T::zero());
-        out.ys.push(T::zero());
+        out.xs.push(sketch.r_x.clone());
+        out.ys.push(mac_key.clone());
 
         let mut sketch_r_kx_neg = sketch.r_kx.clone();
         sketch_r_kx_neg.negate(); 
-        out.zs.push(T::zero());
+        out.zs.push(sketch_r_kx_neg);
 
         out.rs = vec![sketch.rand1.clone(), 
                     sketch.rand2.clone(), 
@@ -192,7 +178,6 @@ where
         let mut out = T::zero();
         for i in 0..sketch::TRIPLES_PER_LEVEL {
             let mut term = T::zero();
-
             // Compute
             // d*e/2 + d*b_i + e*a_i + c_i + z_i
             if self.server_idx {
@@ -225,32 +210,10 @@ where
     pub fn verify(out0: &OutShare<T>, out1: &OutShare<T>) -> bool {
         let mut val = out0.share.clone();
         val.add(&out1.share);
+
         val == T::zero()
     }
 }
-
-/// Verify an array of SketchOutput<T>'s in parallel.
-#[derive(Clone)]
-pub struct ManyMulState<T> {
-    states: Vec<MulState<T>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ManyCorShare<T> {
-    cor_shares: Vec<CorShare<T>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ManyCor<T> {
-    cors: Vec<Cor<T>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ManyOutShare<T> {
-    out_shares: Vec<OutShare<T>>,
-}
-
-
 
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,5 @@
 use crate::prg;
 use crate::Group;
-use crate::MAX_GROUP_SIZE;
-use crate::MAX_GROUP_NUM;
 use crate::DPF_DOMAIN;
 
 use serde::Deserialize;
@@ -305,7 +303,7 @@ where
     }
     pub fn eval_all(&self) -> Vec<T> {
         let mut out = vec![];
-        let mut state = self.eval_init();
+        let state = self.eval_init();
         self.eval_all_actual(0, &mut out, &state);
 
         out

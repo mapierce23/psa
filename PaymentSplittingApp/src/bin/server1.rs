@@ -18,8 +18,10 @@ use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::scalar::Scalar;
 use payapp::ps::*;
 use payapp::ggm::*;
+use payapp::prg::PrgSeed;
 use payapp::coms::*;
 use payapp::sketch::*;
+use payapp::mpc::*;
 use payapp::Group;
 use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
@@ -86,10 +88,18 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // DATA: TransactionData struct
         if buf[0] == 4 {
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-            // Verify MAC Tag
-            // ==============================================================
             let now = SystemTime::now();
-            let (eval_all_src, eval_all_dest) = eval_all(td.dpf_src, td.dpf_dest);
+            let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
+            // VERIFY DPF SKETCHES
+            let seed = PrgSeed::random();
+            let mut sketches = vec![];
+            sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
+            sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
+            let state1s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &sketches[0]);
+            let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &sketches[1]);
+            let corshare1s = state1s.cor_share();
+            let corshare1d = state1d.cor_share();
+            // ===============================================================
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
             if ver {
                 println!("yay! first try!");
@@ -109,7 +119,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                     println!("Error: {e:?}");
                 }
             }
-            // let corshare_2 = sketch_at(); // TODO. Result of 1st step of sketching protocol
             let package = TransactionPackage {
                     strin: "Server1",
                     gp_val_ver: (&result[..]).to_vec(),
@@ -117,6 +126,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                     com_ix: com_ix,
                     g_r2: g_r2,
                     g_r3: g_r3,
+                    cshare_s: corshare1s.clone(),
+                    cshare_d: corshare1d.clone(),
                 };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
@@ -134,6 +145,29 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let now = SystemTime::now();
             let s2data: TransactionPackage = res.unwrap();
+            let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
+            let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
+            let outshare1s = state1s.out_share(&cor_s);
+            let outshare1d = state1d.out_share(&cor_d);
+            // ======================================================================================
+            let mut encoded: Vec<u8> = Vec::new();
+            encoded.extend(bincode::serialize(&(outshare1s.clone(), outshare1d.clone())).unwrap());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([1u8, 3u8]); // SERVER ID, TYPE
+            key.push(td.id);
+            let _ : () = con.set(key.clone(), encoded).unwrap();
+            // WAIT for response
+            key[0] = 2u8;
+            let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
+            let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
+            MulState::verify(&outshare1s, &s2sketch.0);
+            MulState::verify(&outshare1d, &s2sketch.0);
+            // ======================================================================================
             // Verify triple proof!
             let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
             let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");

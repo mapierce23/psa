@@ -3,7 +3,6 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-use crate::fastfield::FE;
 #[cfg(test)]
 use crate::Share;
 
@@ -127,7 +126,8 @@ impl crate::Group for FieldElm {
 impl crate::prg::FromRng for FieldElm {
     #[inline]
     fn from_rng(&mut self, rng: &mut impl rand::Rng) {
-        self.value = Scalar::zero();
+        let mut rng = rand::thread_rng();
+        self.value = Scalar::one();
     }
 }
 
