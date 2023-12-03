@@ -1,7 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 
 extern crate crypto; 
 
@@ -10,7 +7,6 @@ use crypto::symmetriccipher::SynchronousStreamCipher;
 use curve25519_dalek::scalar::Scalar;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::constants as dalek_constants;
-use curve25519_dalek::traits::Identity;
 use curve25519_dalek::ristretto::CompressedRistretto;
 use ring::error::Unspecified;
 use serde::Deserialize;
@@ -21,17 +17,14 @@ use std::convert::TryInto;
 use sha2::Sha256;
 use hmac::{Hmac, Mac};
 use std::iter::repeat;
-use num_bigint::BigUint;
 use zkp::CompactProof;
 use sha2::Sha512;
-use crate::sketch::SketchDPFKey;
 use rand::Rng;
-use std::ops::Neg;
+use crate::sketch::SketchDPFKey;
 
 use crate::ggm::*;
 use crate::dpf::*;
 use crate::Group;
-use crate::coms::*;
 use crate::u32_to_bits;
 use crate::FieldElm;
 use crate::MAX_GROUP_SIZE;
@@ -42,13 +35,9 @@ use crate::DPF_DOMAIN;
 // Write pseudocode or definitions after this
 // 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
 // sign up for 992
-// Definitions: Confidentiality
 // LEFT TO DO: CODE
-// - Servers must publish commitments to vectors before revealing them 
-// - PRF Keys
 // - DPF Sketching
-// - Proof over Group Tokens
-// - Fix settling op
+// - Transaction ID protocol
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
@@ -58,15 +47,23 @@ lazy_static! {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GroupToken {
+	pub P: CompressedRistretto,
 	pub uid: Scalar,
 	pub cm_aid: CompressedRistretto,
 	pub mac_tag: Vec<u8>, 
 }
 
+pub struct GroupTokenPriv {
+	pub prf_keys: (Vec<u8>, Vec<u8>),
+	pub token: GroupToken,
+	pub z3: Scalar,
+	pub aid: Scalar,
+}
+
 impl GroupToken {
 
-	pub fn new(uid: Scalar, cm_aid: CompressedRistretto, mac_tag: Vec<u8>) -> GroupToken {
-		GroupToken { uid, cm_aid, mac_tag }
+	pub fn new(P: CompressedRistretto, uid: Scalar, cm_aid: CompressedRistretto, mac_tag: Vec<u8>) -> GroupToken {
+		GroupToken { P, uid, cm_aid, mac_tag }
 	}
 }
 
@@ -75,23 +72,14 @@ pub struct ServerData {
 	issuer: Issuer,
 }
 
-#[derive(Debug)]
-pub struct GpMemberData {
-	gt: GroupToken,
-	prf_keys: (Vec<u8>, Vec<u8>),
-	aid: usize,
-	uid: usize,
-}
-
 pub struct GpLeaderData {
-	self_mem: Option<GpMemberData>,
-	gp_uids: Vec<u64>,
+	gp_uids: Vec<Scalar>,
 	gp_size: usize,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct TransactionData { 
-	pub token: GroupToken,
+	pub tokens: Vec<GroupToken>,
 	pub id: u8,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
@@ -100,12 +88,12 @@ pub struct TransactionData {
 	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
 	pub com_i: CompressedRistretto, 
 	pub triple_proof: CompactProof,
+	pub token_proof: CompactProof,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SettleData {
 	pub dpf_key: DPFKey<FieldElm, FieldElm>,
-	pub prf_key: Vec<u8>,
 	pub r_seed: Vec<u8>,
 }
 
@@ -151,7 +139,7 @@ impl ServerData {
 
 	pub fn register_user(&mut self, reg_token: show_blind345_5::ShowMessage, mac: &Hmac<Sha256>) -> Result<GroupToken, Unspecified> {
 		let result = self.issuer.verify_blind345_5(reg_token);
-		let ver_cred = result.unwrap();
+		let (P, ver_cred) = result.unwrap();
 
 		// Server produces a MAC tag on UID (ver_cred.m1) and commitment to AID (ver_cred.m3)
 		let mut my_mac = mac.clone();
@@ -162,7 +150,7 @@ impl ServerData {
 		my_mac.update(macinput_bytes);
 		let result_bytes = (my_mac.finalize()).into_bytes();
 
-		let group_token = GroupToken::new(ver_cred.m1, ver_cred.Cm3.compress(), result_bytes.to_vec());
+		let group_token = GroupToken::new(P.compress(), ver_cred.m1, ver_cred.Cm3.compress(), result_bytes.to_vec());
 		return Ok(group_token);
 	}
 
@@ -174,24 +162,24 @@ impl ServerData {
 			db[i].sub(&dest_vec[i]);
 		}
 	}
-	pub fn encrypt_db(db: &Vec<FieldElm>, key: Vec<u8>, r_seed: Vec<u8>) -> Vec<FieldElm> {
-
+	pub fn encrypt_db(db: &Vec<FieldElm>, key: &Vec<Vec<u8>>, r_seed: Vec<u8>) -> (FieldElm, Vec<FieldElm>) {
     	let zero_bytes = [0u8; 16];
 		// Disguise Database for Settling
 		let mut enc_db = db.clone();
+		let mut sum = FieldElm::zero();
 		for j in 0..MAX_GROUP_NUM {
 			// Reset the nonce for every group
-			let mut prf = aes::ctr(KeySize::KeySize128, &key, &r_seed);
+			let mut prf = aes::ctr(KeySize::KeySize128, &key[j], &r_seed);
 			for i in 0..MAX_GROUP_SIZE {
-				// let mut prf = aes::ctr(KeySize::KeySize128, &key, &r_seed);
 				let mut output: Vec<u8> = repeat(0u8).take(16).collect();
 				prf.process(&zero_bytes, &mut output[..]);
 				output.extend(zero_bytes.clone());
 				let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
 				enc_db[i + (j * MAX_GROUP_SIZE)].add(&FieldElm {value: scalar});
+				sum.add(&enc_db[i + (j * MAX_GROUP_SIZE)]);
 			}
 		}
-		return enc_db;
+		return (sum, enc_db);
 	}
 
 	pub fn settle(enc_db1: &Vec<FieldElm>, enc_db2: &Vec<FieldElm>, keyb: &DPFKey<FieldElm, FieldElm>) -> Vec<FieldElm> {
@@ -221,14 +209,12 @@ impl ServerData {
 impl GpLeaderData {
 
 	pub fn new(gp_size: usize) -> GpLeaderData {
-		let self_mem = None;
-		let gp_uids = vec![5; 10];
-		return GpLeaderData {self_mem, gp_uids, gp_size};
-	}
-
-	pub fn group_creation_request() -> (u64, u64) {
-		// Group leader requests creation of a new group
-	    return (0, 0);
+		let mut gp_uids = Vec::<Scalar>::new();
+		let mut rng = rand::thread_rng();
+		for i in 0..MAX_GROUP_SIZE {
+			gp_uids.push(Scalar::random(&mut rng));
+		}
+		return GpLeaderData {gp_uids, gp_size};
 	}
 
 	// Create credential requests for (UID, AID, s) tuples
@@ -245,7 +231,7 @@ impl GpLeaderData {
 
 		for aid in aids {
 
-			let m1 = Scalar::from(self.gp_uids[i]);
+			let m1 = self.gp_uids[i];
 			let m3 = Scalar::from(aid);
 
 			let (req, state) = issue_blind124_5::request(&m1, &m2, &m3, &m4, &m5);
@@ -282,28 +268,10 @@ impl GpLeaderData {
 		return Ok(creds);
 
 	}
-}
-// 	// Function to send credential (Reg Token) to other members?	
+}	
 
 
-impl GpMemberData {
-
-	pub fn register_with_server(cred: Credential, pk: &IssuerPubKey) -> show_blind345_5::ShowMessage {
-		let showmsg = show_blind345_5::show(&cred, pk);
-		return showmsg;
-	}
-
-	pub fn settle_request(&self) -> (DPFKey<FieldElm, FieldElm>, DPFKey<FieldElm, FieldElm>) {
-		let group_num: u32 = (self.aid / MAX_GROUP_SIZE).try_into().unwrap();
-
-		// DPF Key generation
-		let alpha_bits = u32_to_bits(5, group_num);
-		let values = vec![FieldElm::one(); alpha_bits.len() - 1];
-		let (key0, key1) = DPFKey::gen(&alpha_bits, &values, &FieldElm::one());
-
-		// Send keys to servers
-		return (key0, key1);
-	}
+impl GroupTokenPriv {
 
 	pub fn decrypt_db(mut enc_db: Vec<FieldElm>, key1: Vec<u8>, key2: Vec<u8>, r_seed: Vec<u8>) -> Vec<FieldElm> {
 		let zero_bytes = [0u8; 16];
@@ -325,6 +293,3 @@ impl GpMemberData {
 		return enc_db;
 	}
 }
-
-
-

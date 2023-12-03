@@ -15,8 +15,10 @@ use sha2::Sha256;
 use sha2::Digest;
 use redis::Connection;
 use redis::Commands;
+use redis::RedisResult;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::ristretto::CompressedRistretto;
+use curve25519_dalek::scalar::Scalar;
 
 use payapp::ps::*;
 use payapp::ggm::*;
@@ -125,8 +127,40 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             let settle_data: SettleData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S1
             let mut guard = database.lock().unwrap();
-            let enc_db2 = ServerData::encrypt_db(guard.deref(), settle_data.prf_key, settle_data.r_seed);
+            let mut key_arr = Vec::<Vec<u8>>::new();
+            let mut key: Vec<u8> = Vec::new();
+            for j in 0..MAX_GROUP_NUM {
+                key.extend([2u8, 1u8]);
+                key.extend(j.to_be_bytes());
+                let res: RedisResult<Vec<u8>> = con.get(key.clone()); 
+                if res.is_ok() {
+                    let vec = res.unwrap();
+                    if vec.len() == 0 {
+                        let zbytes = [0u8; 16];
+                        key_arr.push(zbytes.to_vec());
+                    }
+                    else {
+                        key_arr.push(vec);
+                    }
+                }
+                key.clear();
+            }
+            let (val, enc_db2) = ServerData::encrypt_db(guard.deref(), &key_arr, settle_data.r_seed);
             drop(guard);
+            // PUBLISH COMMITMENT FIRST
+            let mut rng = rand::thread_rng();
+            let r = Scalar::random(&mut rng);
+            let com = create_com(val, r);
+            let com_bytes = com.0.compress().to_bytes();
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([2u8, 5u8]); // SERVER ID, TYPE
+            let _ : () = con.set(key.clone(), com_bytes.to_vec()).unwrap();
+            // AWAIT COMMITMENT FROM S2
+            key[0] = 1u8;
+            let mut com_2: Vec<u8> = con.get(key.clone()).unwrap();
+            while com_2.len() == 0 {
+                com_2 = con.get(key.clone()).unwrap();
+            }
             let encoded = bincode::serialize(&enc_db2).unwrap();
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 4u8]); // SERVER ID, TYPE
@@ -173,7 +207,7 @@ fn main() -> io::Result<()> {
     let issuer = Issuer::new(5);
     let counter = Arc::new(Mutex::new(0usize));
     let mut vec = Vec::<FieldElm>::new();
-    for i in 0..100 {
+    for i in 0..MAX_GROUP_NUM * MAX_GROUP_SIZE {
         vec.push(FieldElm::zero());
     }
     let database = Arc::new(Mutex::new(vec));

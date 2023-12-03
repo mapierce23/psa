@@ -673,7 +673,7 @@ pub mod show_blind345_5 {
     // the issuer in the credential presentation message.
     #[derive(Serialize, Deserialize)]
     pub struct ShowMessage {
-        P: RistrettoPoint,
+        pub P: RistrettoPoint,
         m1: Scalar,
         m2: Scalar,
         Cm3: RistrettoPoint,
@@ -708,7 +708,7 @@ pub mod show_blind345_5 {
         V = (z3*X3 + z4*X4 + z5*X5 + negzQ*A)
     }
 
-    pub fn show(cred: &Credential, pubkey: &IssuerPubKey) -> ShowMessage {
+    pub fn show(cred: &Credential, pubkey: &IssuerPubKey) -> (Scalar, ShowMessage) {
         let A: &RistrettoPoint = &CMZ_A;
         let Atable: &RistrettoBasepointTable = &CMZ_A_TABLE;
 
@@ -760,7 +760,7 @@ pub mod show_blind345_5 {
             },
         )
         .0;
-
+        (z3, 
         ShowMessage {
             P,
             m1: cred.m[1],
@@ -770,7 +770,7 @@ pub mod show_blind345_5 {
             Cm5,
             CQ,
             piCredShow,
-        }
+        })
     }
 
     impl Issuer {
@@ -783,7 +783,7 @@ pub mod show_blind345_5 {
         pub fn verify_blind345_5(
             &self,
             showmsg: ShowMessage,
-        ) -> Result<VerifiedCredential, ProofError> {
+        ) -> Result<(RistrettoPoint, VerifiedCredential), ProofError> {
             let A: &RistrettoPoint = &CMZ_A;
 
             if showmsg.P.is_identity() {
@@ -818,13 +818,13 @@ pub mod show_blind345_5 {
                     X5: &self.pubkey.X[5].compress(),
                 },
             )?;
-            Ok(VerifiedCredential {
+            Ok((showmsg.P, VerifiedCredential {
                 m1: showmsg.m1,
                 m2: showmsg.m2,
                 Cm3: showmsg.Cm3,
                 Cm4: showmsg.Cm4,
                 Cm5: showmsg.Cm5,
-            })
+            }))
         }
     }
 }

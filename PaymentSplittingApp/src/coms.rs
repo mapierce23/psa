@@ -1,8 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-
 use zkp::CompactProof;
 use zkp::ProofError;
 use zkp::Transcript;
@@ -12,16 +8,17 @@ use curve25519_dalek::ristretto::CompressedRistretto;
 use curve25519_dalek::ristretto::RistrettoBasepointTable;
 use curve25519_dalek::constants as dalek_constants;
 use curve25519_dalek::traits::Identity;
+use sha2::Sha256;
+use hmac::{Hmac, Mac, NewMac};
 use crate::Group;
-use crate::u32_to_bits;
 use crate::FieldElm;
 use sha2::Sha512;
 use crate::sketch::SketchDPFKey;
 use std::convert::TryInto;
 use std::ops::Neg;
+use crate::ps::GroupToken;
 use crate::MAX_GROUP_SIZE;
 use crate::MAX_GROUP_NUM;
-use crate::DPF_DOMAIN;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
@@ -50,12 +47,49 @@ define_proof! {
   ne3 = (id*ne3),
   G = (a*e2 + r3*H + tau*nH + id*ne3 + id*G)
 }
+define_proof! {
+  token,                         // Name of the module
+  "Group Token Proof",           // Label for the proof statement
+  (i, rt, rc),                   // Secret variables
+  (Ti, Ci),                      // Pub variables unique to each proof
+  (G, H, P) :                     // Pub variables common between proofs
+  Ti = (i*P + rt*G),
+  Ci = (i*G + rc*H)
+}
 // ========================================================================
 
-pub fn create_com(val: FieldElm, rand: Scalar) -> (RistrettoPoint, RistrettoPoint) {
+pub fn verify_group_tokens(proof: CompactProof, tokens: Vec<GroupToken>, ci: CompressedRistretto, mac: &Hmac<Sha256>) -> bool {
 
 	let G: &RistrettoPoint = &GEN_G;
 	let H: &RistrettoPoint = &GEN_H;
+	let mut retval = false;
+	let my_mac = mac.clone();
+	// VERIFY PROOFS
+	for i in 0..tokens.len() {
+		let mut transcript = Transcript::new(b"Group Token Proof");
+	    let ver = token::verify_compact(
+	        &proof,
+	        &mut transcript,
+	        token::VerifyAssignments {
+	            G: &G.compress(),
+	            H: &H.compress(),
+	            P: &tokens[i].P,
+	            Ti: &tokens[i].cm_aid,
+	            Ci: &ci,
+	        },
+	    );
+	    if ver.is_ok() {
+	    	retval = true;
+	    }
+	    let blah = my_mac.clone().verify(&tokens[i].mac_tag[..]);
+	    if blah.is_ok() {
+	    	println!("mac tag verified!");
+	    }
+
+	}
+    return retval;
+}
+pub fn create_com(val: FieldElm, rand: Scalar) -> (RistrettoPoint, RistrettoPoint) {
 
     let Gtable: &RistrettoBasepointTable = &GEN_G_TABLE;
     let Htable: &RistrettoBasepointTable = &GEN_H_TABLE;
@@ -133,7 +167,7 @@ pub fn same_group_val_compute(eval_all_src: &Vec<FieldElm>, eval_all_dest: &Vec<
 // S1 ONLY
 pub fn same_group_val_verify(result_1: &Vec<u8>, result_2: &Vec<u8>) -> bool {
 	for i in 0..MAX_GROUP_NUM {
-		let mut sum = result_1[i] - result_2[i];
+		let sum = result_1[i] - result_2[i];
 		if sum != 0 {
 			return false;
 		}
