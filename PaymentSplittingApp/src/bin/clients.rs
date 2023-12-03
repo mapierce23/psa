@@ -339,10 +339,9 @@ fn main() -> io::Result<( )> {
         thread_vec.push(handle1);
         thread_vec.push(handle1);
     }
-    handle1.join().unwrap();
-    handle2.join().unwrap();
-    handle3.join().unwrap();
-    handle4.join().unwrap();
+    for handle in thread_vec {
+        handle.join().unwrap();
+    }
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
