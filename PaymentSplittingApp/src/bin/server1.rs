@@ -27,7 +27,7 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 
-fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>) -> io::Result<()> {
+fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
     let mut server_data = ServerData::new(issuer);
     let con_try = redis_connect();
@@ -89,10 +89,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // DATA: TransactionData struct
         if buf[0] == 4 {
             let start = SystemTime::now();
-            let since_the_epoch = start
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards");
-            println!("{:?}", since_the_epoch.as_millis());
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
@@ -194,11 +190,16 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
-            let start = SystemTime::now();
-            let since_the_epoch = start
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards");
-            println!("{:?}", since_the_epoch.as_millis());
+            match now.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}{}", streams, elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             println!("All Done!");
         }
         // TYPE: SETTLING
@@ -282,6 +283,7 @@ fn main() -> io::Result<()> {
     let random_bytes = thread_rng().gen::<[u8; 32]>();
     let mac = HmacSha256::new_varkey(&random_bytes).expect("HMAC can take key of any size");
 
+    let mut streams = 0;
     for stream in receiver_listener.incoming() {
         let stream = stream.expect("failed");
         let counter = counter.clone();
@@ -289,8 +291,9 @@ fn main() -> io::Result<()> {
         let prf_keys = prf_keys.clone();
         let my_issuer = issuer.clone();
         let my_mac = mac.clone();
+        streams++;
         let handle = thread::spawn(move || {
-            handle_client(stream, my_issuer, counter, database, prf_keys, &my_mac).unwrap_or_else(|error| eprintln!("{:?}",error))
+            handle_client(stream, my_issuer, counter, database, prf_keys, &my_mac, &streams).unwrap_or_else(|error| eprintln!("{:?}",error))
         });
         thread_vec.push(handle);
     }
