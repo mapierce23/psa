@@ -188,6 +188,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
+            println!("All Done!");
         }
         // TYPE: SETTLING
         // DATA: Settle Request
