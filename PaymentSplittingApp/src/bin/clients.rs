@@ -43,7 +43,7 @@ lazy_static! {
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
 
     let mut leader = GpLeaderData::new(MAX_GROUP_SIZE);
-    let mut stream1 = TcpStream::connect("127.0.0.1:7878")?;
+    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
 
     // GROUP SETUP
     // Send group creation request to the server
