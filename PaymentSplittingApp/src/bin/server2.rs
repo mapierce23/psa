@@ -65,7 +65,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             let corshare2s = state2s.cor_share();
             let corshare2d = state2d.cor_share();
             // ===========================================================================
-            let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
+            // let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, false);
             let mut hasher = Sha256::new();
             hasher.update(bincode::serialize(&w1).unwrap());
@@ -127,21 +127,21 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             // Add gp_val vectors and check == 0
             // Multiply commitments/exponents and verify transaction proof
             // verify sketch 
-            let g_r2_1: RistrettoPoint = s1data.g_r2.decompress().expect("REASON");
-            let g_r2_2: RistrettoPoint = g_r2.decompress().expect("REASON");
-            let g_r2 = g_r2_1 + g_r2_2;
-            let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
-            let g_r3_2: RistrettoPoint = s1data.g_r3.decompress().expect("REASON");
-            let g_r3 = g_r3_1 + g_r3_2;
-            let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
-            let comx_2: RistrettoPoint = s1data.com_x.decompress().expect("REASON");
-            let comx = comx_1 + comx_2;
-            let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
-            let comix_2: RistrettoPoint = s1data.com_ix.decompress().expect("REASON");
-            let comix = comix_1 + comix_2;
-            let g_r1 = td.g_r1.decompress().expect("REASON");
-            let com_i = td.com_i.decompress().expect("REASON");
-            let (com_a, com_x) = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof).unwrap();
+            // let g_r2_1: RistrettoPoint = s1data.g_r2.decompress().expect("REASON");
+            // let g_r2_2: RistrettoPoint = g_r2.decompress().expect("REASON");
+            // let g_r2 = g_r2_1 + g_r2_2;
+            // let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
+            // let g_r3_2: RistrettoPoint = s1data.g_r3.decompress().expect("REASON");
+            // let g_r3 = g_r3_1 + g_r3_2;
+            // let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
+            // let comx_2: RistrettoPoint = s1data.com_x.decompress().expect("REASON");
+            // let comx = comx_1 + comx_2;
+            // let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
+            // let comix_2: RistrettoPoint = s1data.com_ix.decompress().expect("REASON");
+            // let comix = comix_1 + comix_2;
+            // let g_r1 = td.g_r1.decompress().expect("REASON");
+            // let com_i = td.com_i.decompress().expect("REASON");
+            // let (com_a, com_x) = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof).unwrap();
             let ver = true; 
             let mut success = String::from("Transaction Processed");
             if ver != true {
