@@ -1,5 +1,6 @@
 use crate::prg;
 use crate::Group;
+use crate::prg::PrgSeed;
 use crate::DPF_DOMAIN;
 
 use serde::Deserialize;
@@ -207,10 +208,10 @@ where
             word,
         )
     }
-    pub fn my_eval_bit(&self, state: &EvalState, dir: bool, target: &bool) -> (EvalState, T) {
-        let tau = state.seed.expand_dir(!dir, dir);
-        let mut seed = tau.seeds.get(dir).clone();
-        let mut new_bit = *tau.bits.get(dir);
+    pub fn my_eval_bit(&self, state: &EvalState, my_seed: PrgSeed, new_bitb: bool, dir: bool, target: &bool) -> (EvalState, T) {
+        // let tau = state.seed.expand_dir(!dir, dir);
+        let mut seed = my_seed;
+        let mut new_bit = new_bitb;
 
         if state.bit {
             seed = &seed ^ &self.cor_words[state.level].seed;
@@ -313,8 +314,13 @@ where
         let bit_0 = false;
         let bit_1 = true;
         let target = (len + 1) == DPF_DOMAIN - 1;
-        let (state_new_0, word_0) = self.my_eval_bit(&state, bit_0, &target);
-        let (state_new_1, word_1) = self.my_eval_bit(&state, bit_1, &target);
+        let tau = state.seed.expand();
+        let seed0 = tau.seeds.get(bit_0);
+        let seed1 = tau.seeds.get(bit_1);
+        let new_bit0 = tau.bits.get(bit_0);
+        let new_bit1 = tau.bits.get(bit_1);
+        let (state_new_0, word_0) = self.my_eval_bit(&state, seed0.clone(), *new_bit0, bit_0, &target);
+        let (state_new_1, word_1) = self.my_eval_bit(&state, seed1.clone(), *new_bit1, bit_1, &target);
 
         // Base Case! We've hit the target length
         if target {
@@ -337,3 +343,4 @@ where
         self.cor_words.len()
     }
 }
+
