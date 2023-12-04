@@ -140,7 +140,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             encoded.extend(bincode::serialize(&(outshare1s.clone(), outshare1d.clone())).unwrap());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 3u8]); // SERVER ID, TYPE
-            key.push(td.id);
+            key.extend(td.id.to_be_bytes());
             let _ : () = con.set(key.clone(), encoded).unwrap();
             // WAIT for response
             key[0] = 2u8;
