@@ -194,6 +194,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
+            let start = SystemTime::now();
+            let since_the_epoch = start
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards");
+            println!("{:?}", since_the_epoch.as_millis());
             println!("All Done!");
         }
         // TYPE: SETTLING
@@ -239,11 +244,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
             let encoded = bincode::serialize(&balance_vec1).unwrap();
             let _ = stream.write(&encoded);
-            let start = SystemTime::now();
-            let since_the_epoch = start
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards");
-            println!("{:?}", since_the_epoch.as_millis());
         }
         // And you can sleep this connection with the connected sender
         thread::sleep(Duration::from_secs(1));  
