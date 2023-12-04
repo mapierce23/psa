@@ -65,7 +65,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             let corshare2s = state2s.cor_share();
             let corshare2d = state2d.cor_share();
             // ===========================================================================
-            // let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
+            let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, false);
             let mut hasher = Sha256::new();
             hasher.update(bincode::serialize(&w1).unwrap());
