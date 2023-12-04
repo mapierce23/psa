@@ -5,7 +5,7 @@ use std::thread;
 use std::sync::Mutex;
 use std::ops::Deref;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::ops::DerefMut;
 use hmac::{Hmac, Mac, NewMac};
 use sha2::Sha256;
@@ -88,6 +88,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
+            let start = SystemTime::now();
+            let since_the_epoch = start
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards");
+            println!("{:?}", since_the_epoch.as_millis());
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
@@ -234,6 +239,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
             let encoded = bincode::serialize(&balance_vec1).unwrap();
             let _ = stream.write(&encoded);
+            let start = SystemTime::now();
+            let since_the_epoch = start
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards");
+            println!("{:?}", since_the_epoch.as_millis());
         }
         // And you can sleep this connection with the connected sender
         thread::sleep(Duration::from_secs(1));  
