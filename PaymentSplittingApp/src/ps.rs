@@ -84,8 +84,6 @@ pub struct TransactionData {
 	pub id: u32,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
-	pub dpf_src_dummy: SketchDPFKey<FieldElm, FieldElm>,
-	pub dpf_dest_dummy: SketchDPFKey<FieldElm, FieldElm>,
 	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
 	pub r2: Scalar,           // Share of randomness to calculate commitment to x
 	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
