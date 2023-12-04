@@ -91,13 +91,13 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     Ok(tokens)
 }
 
-fn prepare_transaction(start: u8, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionData) {
+fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionData) {
 
     let mut my_tokens = Vec::<GroupToken>::new();
     for j in 0..tokens.len() {
         my_tokens.push(tokens[j].token.clone());
     }
-    let mut count: u8 = start;
+    let mut count: u32 = start;
     let bytes = tokens[0].aid.to_bytes();
     let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
     let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
