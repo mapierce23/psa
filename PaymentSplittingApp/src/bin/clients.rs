@@ -351,10 +351,6 @@ fn main() -> io::Result<( )> {
     }
 
     let now = SystemTime::now();
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => println!("current time: {}", n.as_nanos()),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-    }
     for i in 0..30 {
         let now_s = SystemTime::now();
         let td1 = (tdatavec[i].0).clone();
@@ -365,10 +361,6 @@ fn main() -> io::Result<( )> {
 
     for handle in thread_vec {
         handle.join().unwrap();
-    }
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => println!("current time: {}", n.as_nanos()),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     }
     match now.elapsed() {
         Ok(elapsed) => {
