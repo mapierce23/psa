@@ -46,7 +46,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: NEW GROUP REQUEST
         // Data: PRF Keys
         if buf[0] == 1 {
-            println!("Setup Time!");
             let mut guard = counter.lock().unwrap();
             let index = guard.deref();
             let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
@@ -90,6 +89,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 4 {
             let start = SystemTime::now();
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            println!("{:?}", bytes_read);
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
             let seed = PrgSeed::random();
@@ -190,21 +190,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
-            match now.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{} / {}", streams, elapsed.as_nanos());                    
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
-            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                Ok(n) => println!("current time at {}: {}", streams, n.as_nanos()),
-                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-            }
-            println!("All Done!");
         }
         // TYPE: SETTLING
         // DATA: Settle Request
