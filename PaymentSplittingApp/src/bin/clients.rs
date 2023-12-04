@@ -350,7 +350,7 @@ fn main() -> io::Result<( )> {
 
     let now = SystemTime::now();
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => println!("current time at {}: {}", streams, n.as_nanos()),
+        Ok(n) => println!("current time: {}", n.as_nanos()),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     }
     for i in 0..15 {
@@ -365,7 +365,7 @@ fn main() -> io::Result<( )> {
         handle.join().unwrap();
     }
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => println!("current time at {}: {}", streams, n.as_nanos()),
+        Ok(n) => println!("current time: {}", n.as_nanos()),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     }
     match now.elapsed() {
