@@ -193,12 +193,16 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("{} / {}", streams, elapsed.as_nanos());
+                    println!("{} / {}", streams, elapsed.as_nanos());                    
                 }
                 Err(e) => {
                     // an error occurred!
                     println!("Error: {e:?}");
                 }
+            }
+            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                Ok(n) => println!("current time at {}: {}", streams, n.as_nanos()),
+                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
             }
             println!("All Done!");
         }
