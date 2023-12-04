@@ -106,6 +106,26 @@ impl PrgSeed {
 
         out
     }
+    pub fn my_convert<T: FromRng + crate::Group>(self: &PrgSeed, target: &bool) -> ConvertOutput<T> {
+        let mut out = ConvertOutput {
+            seed: PrgSeed::zero(),
+            word: T::zero(),
+        };
+
+        FIXED_KEY_STREAM.with(|s_in| {
+            let mut s = s_in.borrow_mut();
+            s.set_key(&self.key);
+            s.fill_bytes(&mut out.seed.key);
+            if *target {
+                unsafe {
+                    let sp = s_in.as_ptr();
+                    out.word.from_rng(&mut *sp);
+                }
+            }
+        });
+
+        out
+    }
 
     pub fn zero() -> PrgSeed {
         PrgSeed { key: [0; AES_KEY_SIZE], }
