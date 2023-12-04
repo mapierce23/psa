@@ -246,7 +246,6 @@ impl GpLeaderData {
 		let mut encoded: Vec<u8> = Vec::new();
 		encoded.push(2u8);
 		encoded.extend(bincode::serialize(&reqs).unwrap());
-		println!("{:?}", encoded.len());
 		let _ = stream.write(&encoded);
 		let mut buf = [0;10196];
 		let mut bytes_read = 0;
@@ -262,9 +261,6 @@ impl GpLeaderData {
 			let result = issue_blind124_5::verify(req_states[i], resp, &pk);
 			if result.is_ok() {
 				creds.push(result.unwrap());
-			}
-			else {
-				println!("i is {:?}", i);
 			}
 			i += 1;
 		}
