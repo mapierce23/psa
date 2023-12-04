@@ -291,7 +291,7 @@ fn main() -> io::Result<()> {
         let prf_keys = prf_keys.clone();
         let my_issuer = issuer.clone();
         let my_mac = mac.clone();
-        streams++;
+        streams += 1;
         let handle = thread::spawn(move || {
             handle_client(stream, my_issuer, counter, database, prf_keys, &my_mac, &streams).unwrap_or_else(|error| eprintln!("{:?}",error))
         });
