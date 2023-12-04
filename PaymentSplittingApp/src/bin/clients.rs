@@ -355,7 +355,7 @@ fn main() -> io::Result<( )> {
         Ok(n) => println!("current time: {}", n.as_nanos()),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     }
-    for i in 0..15 {
+    for i in 0..30 {
         let now_s = SystemTime::now();
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();
