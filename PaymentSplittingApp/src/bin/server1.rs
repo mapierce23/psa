@@ -119,7 +119,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             encoded.extend(bincode::serialize(&package).unwrap());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 2u8]); // SERVER ID, TYPE
-            key.push(td.id);
+            key.extend(td.id.to_be_bytes());
             let _ : () = con.set(key.clone(), encoded).unwrap();
             // WAIT for response
             key[0] = 2u8;
@@ -240,7 +240,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 }
 
 fn redis_connect() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("redis://10.142.0.2:6379")?;
+    let client = redis::Client::open("redis://127.0.0.1:6379")?;
     let con = client.get_connection()?;
 
     Ok(con)

@@ -85,7 +85,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             encoded.extend(bincode::serialize(&package).unwrap());
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 2u8]); // SERVER ID, TYPE
-            key.push(td.id);
+            key.extend(td.id.to_be_bytes());
             let _ : () = con.set(key.clone(), encoded).unwrap();
             // WAIT for response
             key[0] = 1u8;

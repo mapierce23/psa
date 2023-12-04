@@ -81,7 +81,7 @@ pub struct GpLeaderData {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TransactionData { 
 	pub tokens: Vec<GroupToken>,
-	pub id: u8,
+	pub id: u32,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
 	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
