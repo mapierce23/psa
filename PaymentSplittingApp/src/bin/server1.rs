@@ -193,7 +193,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("{}{}", streams, elapsed.as_nanos());
+                    println!("{} / {}", streams, elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
