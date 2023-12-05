@@ -253,6 +253,7 @@ impl GpLeaderData {
 			bytes_read = stream.read(&mut buf)?;
 		}
 		let resps: Vec<issue_blind124_5::CredentialResponse> = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+		println!("{:?}", bytes_read); 
 		
 		// Once we get the Credential Responses:
 		let mut i = 0;
