@@ -16,7 +16,7 @@ extern crate lazy_static;
 pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
-pub const MAX_GROUP_SIZE: usize = 50;
+pub const MAX_GROUP_SIZE: usize = 40;
 pub const MAX_GROUP_NUM: usize = 13107;
 pub const DPF_DOMAIN: usize = 18; // 9 = 2^8 = 256 // about 60 AES evals
 
