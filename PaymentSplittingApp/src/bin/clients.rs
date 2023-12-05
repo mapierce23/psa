@@ -85,6 +85,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     // reg token to the server in exchange for a group token.
     let mut tokens = Vec::<GroupTokenPriv>::new();
     for i in 0..group_size {  
+        let now = SystemTime::now();  
         let (z3, showmsg) = show_blind345_5::show(&creds[i], &pubkey);
         let mut encoded: Vec<u8> = Vec::new();
         encoded.push(3u8);
@@ -94,6 +95,17 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
         let mut bytes_read = 0;
         while bytes_read == 0 {
             bytes_read = stream1.read(&mut buf)?;
+        }
+        let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+        match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("{}", elapsed.as_nanos());
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
         }
         let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
         let priv_token = GroupTokenPriv {
