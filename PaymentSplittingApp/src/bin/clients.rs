@@ -63,7 +63,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     stream1.write(&encoded).expect("failed to write");
 
     // The server responds with a list of account IDs and a public key
-    let mut buf = [0;10192];
+    let mut buf = [0;20192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream1.read(&mut buf)?;
@@ -91,7 +91,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
         encoded.push(3u8);
         encoded.extend(bincode::serialize(&showmsg).unwrap());
         stream1.write(&encoded).expect("failed to write");
-        let mut buf = [0;10192];
+        let mut buf = [0;20192];
         let mut bytes_read = 0;
         while bytes_read == 0 {
             bytes_read = stream1.read(&mut buf)?;
@@ -251,7 +251,7 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     stream2.write(&encoded2).expect("failed to write");
 
     // Make sure transaction was valid 
-    let mut buf = [0;10192];
+    let mut buf = [0;20192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream1.read(&mut buf)?;
@@ -260,7 +260,7 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     if msg != String::from("Transaction Processed") {
         println!("Uh oh! Submitted invalid transaction.");
     }
-    let mut buf = [0;10192];
+    let mut buf = [0;20192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
         bytes_read = stream2.read(&mut buf)?;
