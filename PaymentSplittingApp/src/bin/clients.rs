@@ -330,7 +330,7 @@ fn main() -> io::Result<( )> {
     let mut client4 = Vec::<GroupTokenPriv>::new();
     client4.push(priv_tokens1[3].clone());
     client4.push(priv_tokens2[3].clone());
-    client4.push(priv_tokens3[4].clone());
+    client4.push(priv_tokens4[4].clone());
 
     let mut tdatavec = Vec::<(TransactionData, TransactionData)>::new();
 
