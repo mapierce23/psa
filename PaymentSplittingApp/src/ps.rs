@@ -247,7 +247,7 @@ impl GpLeaderData {
 		encoded.push(2u8);
 		encoded.extend(bincode::serialize(&reqs).unwrap());
 		let _ = stream.write(&encoded);
-		let mut buf = [0;10196];
+		let mut buf = [0;20196];
 		let mut bytes_read = 0;
 		while bytes_read == 0 {
 			bytes_read = stream.read(&mut buf)?;
