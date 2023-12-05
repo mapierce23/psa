@@ -114,6 +114,8 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
         FieldElm::from(0u32),
         FieldElm::from(0u32),
         FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
         FieldElm::from(20u32),
     ];
     let a_src = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src);
