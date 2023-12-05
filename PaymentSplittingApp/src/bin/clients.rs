@@ -52,9 +52,9 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     let mut stream1 = TcpStream::connect(SERVER1)?;
 
     // GROUP SETUP
+    let now = SystemTime::now();
     // Send group creation request to the server
     let mut encoded: Vec<u8> = Vec::new();
-    let prf_keys = (4u64, 5u64);
     let key_bytes1 = rand::thread_rng().gen::<[u8; 16]>();
     let key_bytes2 = rand::thread_rng().gen::<[u8; 16]>();
     let prf_keys = (key_bytes1.to_vec(), key_bytes2.to_vec());
@@ -70,6 +70,16 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     }
     let (aids, pubkey): (Vec<u64>, IssuerPubKey) = bincode::deserialize(&buf[0..bytes_read]).unwrap();
     let creds = leader.group_setup(aids, &stream1, pubkey.clone())?;
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("{}", elapsed.as_nanos());
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
 
     // The credential is the registration token. Each group member submits their
     // reg token to the server in exchange for a group token.
