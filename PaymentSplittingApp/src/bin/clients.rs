@@ -309,7 +309,6 @@ fn main() -> io::Result<( )> {
     let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
     let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
-    let priv_tokens3 = setup_group(MAX_GROUP_SIZE).unwrap();
     let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
     let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
