@@ -7,17 +7,17 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct CorWord<T> {
-    seed: prg::PrgSeed,
-    bits: (bool, bool),
-    word: T,
+pub struct CorWord<T> {
+    pub seed: prg::PrgSeed,
+    pub bits: (bool, bool),
+    pub word: Option<T>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DPFKey<T,U> {
     key_idx: bool,
     root_seed: prg::PrgSeed,
-    cor_words: Vec<CorWord<T>>,
+    pub cor_words: Vec<CorWord<T>>,
     cor_word_last: CorWord<U>,
 }
 
@@ -80,7 +80,7 @@ impl<T> TupleExt<T> for (T, T) {
     }
 }
 
-fn gen_cor_word<W>(bit: bool, value: W, bits: &mut (bool, bool), seeds: &mut (prg::PrgSeed, prg::PrgSeed)) -> CorWord<W>
+fn gen_cor_word<W>(bit: bool, value: W, bits: &mut (bool, bool), seeds: &mut (prg::PrgSeed, prg::PrgSeed), need_word: bool) -> CorWord<W>
     where W: prg::FromRng + Clone + Group + std::fmt::Debug
 {
     let data = seeds.map(|s| s.expand());
@@ -98,8 +98,11 @@ fn gen_cor_word<W>(bit: bool, value: W, bits: &mut (bool, bool), seeds: &mut (pr
             data.0.bits.0 ^ data.1.bits.0 ^ bit ^ true,
             data.0.bits.1 ^ data.1.bits.1 ^ bit,
         ),
-        word: W::zero(),
+        word: None,
     };
+    if need_word {
+        cw.word = Some(W::zero());
+    } 
 
     for (b, seed) in seeds.iter_mut() {
         *seed = data.get(b).seeds.get(keep).clone();
@@ -117,12 +120,13 @@ fn gen_cor_word<W>(bit: bool, value: W, bits: &mut (bool, bool), seeds: &mut (pr
     }
 
     let converted = seeds.map(|s| s.convert());
-    cw.word = value;
-    cw.word.sub(&converted.0.word);
-    cw.word.add(&converted.1.word);
-
-    if bits.1 {
-        cw.word.negate();
+    if cw.word.is_some() {
+        cw.word = Some(value);
+        cw.word.clone().expect("REASON").sub(&converted.0.word);
+        cw.word.clone().expect("REASON").add(&converted.1.word);
+        if bits.1 {
+            cw.word.clone().expect("REASON").negate();
+        }
     }
 
     seeds.0 = converted.0.seed;
@@ -154,9 +158,12 @@ where
         for (i, &bit) in alpha_bits.iter().enumerate() {
             let is_last_word = i == values.len();
             if is_last_word {
-                last_cor_word.push(gen_cor_word::<U>(bit, value_last.clone(), &mut bits, &mut seeds));
+                last_cor_word.push(gen_cor_word::<U>(bit, value_last.clone(), &mut bits, &mut seeds, false));
+            } else if i == values.len() - 1 {
+                let cw = gen_cor_word::<T>(bit, values[i].clone(), &mut bits, &mut seeds, true);
+                cor_words.push(cw);
             } else {
-                let cw = gen_cor_word::<T>(bit, values[i].clone(), &mut bits, &mut seeds);
+                let cw = gen_cor_word::<T>(bit, values[i].clone(), &mut bits, &mut seeds, false);
                 cor_words.push(cw);
             }
         }
@@ -189,8 +196,8 @@ where
         let converted = seed.convert::<T>();
         seed = converted.seed;
         let mut word = converted.word;
-        if new_bit {
-            word.add(&self.cor_words[state.level].word);
+        if new_bit && self.cor_words[state.level].word.is_some() {
+            word.add(&self.cor_words[state.level].word.clone().unwrap());
         }
 
         if self.key_idx {
@@ -223,9 +230,10 @@ where
         let mut word = converted.word;
         if *target {
             if new_bit {
-                word.add(&self.cor_words[state.level].word);
+                if self.cor_words[state.level].word.is_some() {
+                    word.add(&self.cor_words[state.level].word.clone().unwrap());
+                }
             }
-
             if self.key_idx {
                 word.negate()
             }
@@ -257,8 +265,8 @@ where
         seed = converted.seed;
 
         let mut word = converted.word;
-        if new_bit {
-            word.add(&self.cor_word_last.word);
+        if new_bit && self.cor_word_last.word.is_some() {
+            word.add(&self.cor_word_last.word.clone().unwrap());
         }
 
         if self.key_idx {
@@ -343,4 +351,3 @@ where
         self.cor_words.len()
     }
 }
-

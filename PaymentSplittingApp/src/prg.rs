@@ -302,12 +302,12 @@ impl FixedKeyPrgStream {
 
     // From RustCrypto aesni crate
     #[inline(always)]
-    fn inc_be(v: __m128i) -> __m128i {
+    pub fn inc_be(v: __m128i) -> __m128i {
         unsafe { _mm_add_epi64(v, _mm_set_epi64x(1, 0)) }
     }
 
     #[inline(always)]
-    fn store(val: __m128i, at: &mut [u8]) {
+    pub fn store(val: __m128i, at: &mut [u8]) {
         debug_assert_eq!(at.len(), AES_BLOCK_SIZE);
 
         #[allow(clippy::cast_ptr_alignment)]
@@ -318,7 +318,7 @@ impl FixedKeyPrgStream {
 
     // Modified from RustCrypto aesni crate
     #[inline(always)]
-    fn load(key: &[u8; 16]) -> __m128i {
+    pub fn load(key: &[u8; 16]) -> __m128i {
         let val = Block::from_slice(key);
 
         // Safety: `loadu` supports unaligned loads

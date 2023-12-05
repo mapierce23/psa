@@ -20,7 +20,6 @@ pub struct SketchDPFKey<T, U> {
     pub key: dpf::DPFKey<(T, T), (U, U)>,
 
     pub triples: Vec<mpc::TripleShare<T>>,
-    pub triples_last: Vec<mpc::TripleShare<U>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -113,17 +112,9 @@ where
         let mut triples0 = vec![];
         let mut triples1 = vec![];
         for _i in 0..TRIPLES_PER_LEVEL {
-            let t = mpc::TripleShare::new();
+            let t: [mpc::TripleShare<T>; 2] = mpc::TripleShare::new();
             triples0.push(t[0].clone());
             triples1.push(t[1].clone());
-        }
-
-        let mut triples0_last = vec![];
-        let mut triples1_last = vec![];
-        for _i in 0..TRIPLES_PER_LEVEL {
-            let t = mpc::TripleShare::new();
-            triples0_last.push(t[0].clone());
-            triples1_last.push(t[1].clone());
         }
 
 
@@ -135,7 +126,6 @@ where
                 mac_key2_last: mac_key2_sh0_last,
                 key: dpf_key0,
                 triples: triples0,
-                triples_last: triples0_last
             },
             SketchDPFKey {
                 mac_key: mac_key_sh1,
@@ -144,7 +134,6 @@ where
                 mac_key2_last: mac_key2_sh1_last,
                 key: dpf_key1,
                 triples: triples1,
-                triples_last: triples1_last
             },
         ]
     }

@@ -34,6 +34,10 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
 
+pub const SERVER1: &str = "127.0.0.1:7878";
+pub const SERVER2: &str = "127.0.0.1:7879";
+pub const TRIALS: usize = 50;
+
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
@@ -43,7 +47,7 @@ lazy_static! {
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
 
     let mut leader = GpLeaderData::new(MAX_GROUP_SIZE);
-    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
+    let mut stream1 = TcpStream::connect(SERVER1)?;
 
     // GROUP SETUP
     // Send group creation request to the server
@@ -101,25 +105,11 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
     let bytes = tokens[0].aid.to_bytes();
     let (int_bytes, rest) = bytes.split_at(std::mem::size_of::<u32>());
     let src: u32 = u32::from_le_bytes(int_bytes.try_into().unwrap());
-    let betas = vec![
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(0u32),
-        FieldElm::from(20u32),
-    ];
+    let mut betas = Vec::<FieldElm>::new();
+    for i in 0..DPF_DOMAIN - 2 {
+        betas.push(FieldElm::zero());
+    }
+    betas.push(FieldElm::from(20u32));
     let a_src = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src);
     let a_dest = my_u32_to_bits(DPF_DOMAIN.try_into().unwrap(), src + 3);
     let beta_last = FieldElm::from(0u32);
@@ -222,8 +212,8 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
 
 fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
 
-    let mut stream1 = TcpStream::connect("10.138.0.2:7878")?;
-    let mut stream2 = TcpStream::connect("10.128.0.4:7879")?;
+    let mut stream1 = TcpStream::connect(SERVER1)?;
+    let mut stream2 = TcpStream::connect(SERVER2)?;
 
     // Send to S1
     let mut encoded1: Vec<u8> = Vec::new();
@@ -355,7 +345,7 @@ fn main() -> io::Result<( )> {
     }
 
     let now = SystemTime::now();
-    for i in 0..30 {
+    for i in 0..TRIALS {
         let now_s = SystemTime::now();
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();

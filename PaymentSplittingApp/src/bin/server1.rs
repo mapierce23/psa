@@ -27,6 +27,8 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 
+pub const REDIS: &str = "redis://127.0.0.1:6379";
+
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
     let mut server_data = ServerData::new(issuer);
@@ -189,6 +191,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
+            println!("All done!");
         }
         // TYPE: SETTLING
         // DATA: Settle Request
@@ -241,7 +244,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 }
 
 fn redis_connect() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("redis://10.128.0.4:6379")?;
+    let client = redis::Client::open(REDIS)?;
     let con = client.get_connection()?;
 
     Ok(con)
@@ -291,4 +294,3 @@ fn main() -> io::Result<()> {
     }
     Ok(())
 }
-
