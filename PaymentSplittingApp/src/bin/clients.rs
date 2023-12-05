@@ -100,7 +100,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
         match now.elapsed() {
             Ok(elapsed) => {
                 // it prints '2'
-                println!("{}", elapsed.as_nanos());
+                println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
             }
             Err(e) => {
                 // an error occurred!
