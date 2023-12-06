@@ -102,7 +102,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
             // ===============================================================
-            let sum = 0;
+            let mut sum = 0;
             let now = SystemTime::now();
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
             match now.elapsed() {
