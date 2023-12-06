@@ -229,25 +229,25 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     stream2.write(&encoded2).expect("failed to write");
     println!("{:?}", encoded2.len());
 
-    // Make sure transaction was valid 
-    let mut buf = [0;40192];
-    let mut bytes_read = 0;
-    while bytes_read == 0 {
-        bytes_read = stream1.read(&mut buf)?;
-    }
-    let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-    if msg != String::from("Transaction Processed") {
-        println!("Uh oh! Submitted invalid transaction.");
-    }
-    let mut buf = [0;40192];
-    let mut bytes_read = 0;
-    while bytes_read == 0 {
-        bytes_read = stream2.read(&mut buf)?;
-    }
-    let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-    if msg != String::from("Transaction Processed") {
-        println!("Uh oh! Submitted invalid transaction.");
-    }
+    // // Make sure transaction was valid 
+    // let mut buf = [0;40192];
+    // let mut bytes_read = 0;
+    // while bytes_read == 0 {
+    //     bytes_read = stream1.read(&mut buf)?;
+    // }
+    // let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+    // if msg != String::from("Transaction Processed") {
+    //     println!("Uh oh! Submitted invalid transaction.");
+    // }
+    // let mut buf = [0;40192];
+    // let mut bytes_read = 0;
+    // while bytes_read == 0 {
+    //     bytes_read = stream2.read(&mut buf)?;
+    // }
+    // let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+    // if msg != String::from("Transaction Processed") {
+    //     println!("Uh oh! Submitted invalid transaction.");
+    // }
     Ok(())
 }
 
