@@ -31,6 +31,7 @@ pub struct SketchOutput<T> {
     //          <r^2, k.x> + k^2
     pub r_x: T,
     pub r2_x: T,
+    pub r3_x: T,
     pub r_kx: T,
 
     // Random values shared between the two
@@ -49,6 +50,7 @@ where
         SketchOutput {
             r_x: T::zero(),
             r2_x: T::zero(),
+            r3_x: T::zero(),
             r_kx: T::zero(),
 
             rand1: T::zero(),
@@ -60,12 +62,14 @@ where
     pub fn add(&mut self, other: &Self) {
         self.r_x.add(&other.r_x);
         self.r2_x.add(&other.r2_x);
+        self.r3_x.add(&other.r3_x);
         self.r_kx.add(&other.r_kx);
     }
 
     pub fn reduce(&mut self) {
         self.r_x.reduce();
         self.r2_x.reduce();
+        self.r3_x.reduce();
         self.r_kx.reduce();
     }
 }
@@ -168,6 +172,10 @@ where
             let mut sketch_r2 = sketch_r.clone();
             sketch_r2.mul_lazy(&sketch_r);
 
+            // Compute r_i^3
+            let mut sketch_r3 = sketch_r2.clone();
+            sketch_r3.mul_lazy(&sketch_r);
+
             // Compute
             //          <r, x>
             //          <r^2, x>
@@ -184,9 +192,13 @@ where
             let mut tmp2 = kx.clone();
             tmp2.mul_lazy(&sketch_r);
 
+            let mut tmp3 = x.clone();
+            tmp3.mul_lazy(&sketch_r3);
+
             out.r_x.add_lazy(&tmp0);
             out.r2_x.add_lazy(&tmp1);
             out.r_kx.add_lazy(&tmp2);
+            out.r3_x.add_lazy(&tmp3);
         }
 
         out.reduce();
