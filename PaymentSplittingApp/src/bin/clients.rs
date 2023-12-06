@@ -197,8 +197,7 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
         triple_proof: transact_pf.clone(),
         token_proof: token_pf.clone(),
     };
-    let transact_data2 = TransactionData {
-        tokens: my_tokens.clone(),
+    let transact_data2 = TransactionDataS2 {
         id: count,
         dpf_src: keys_src[1].clone(),
         dpf_dest: keys_dest[1].clone(),
@@ -206,8 +205,6 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
         r2: r2_2,
         r3: r3_2,
         com_i: e1.compress(),
-        triple_proof: transact_pf.clone(),
-        token_proof: token_pf.clone(),
     };
     (transact_data1, transact_data2)
 }
