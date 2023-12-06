@@ -240,6 +240,7 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     let mut buf = [0;40192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
+        println!("waiting");
         bytes_read = stream2.read(&mut buf)?;
     }
     let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
