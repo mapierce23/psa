@@ -99,7 +99,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     Ok(tokens)
 }
 
-fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionData) {
+fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionDataS2) {
     let mut my_tokens = Vec::<GroupToken>::new();
     for j in 0..tokens.len() {
         my_tokens.push(tokens[j].token.clone());
@@ -209,7 +209,7 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
     (transact_data1, transact_data2)
 }
 
-fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
+fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionDataS2) -> io::Result<( )>{
     let mut stream1 = TcpStream::connect(SERVER1)?;
     let mut stream2 = TcpStream::connect(SERVER2)?;
 
