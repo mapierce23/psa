@@ -252,7 +252,7 @@ fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
     println!("Settling Group #{:?}", group_num);
     let now = SystemTime::now();
     // DPF Key generation
-    let alpha_bits = my_u32_to_bits(8, group_num);
+    let alpha_bits = my_u32_to_bits(7, group_num);
     let values = vec![
         FieldElm::from(0u32),
         FieldElm::from(0u32),
