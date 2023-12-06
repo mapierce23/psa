@@ -90,7 +90,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let start = SystemTime::now();
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
@@ -103,7 +102,18 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
             // ===============================================================
+            let now = SystemTime::now();
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
+            match now.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let mut hasher = Sha256::new();
@@ -121,7 +131,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
-            println!("Transaction Package Weight: {:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 2u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());
@@ -143,7 +152,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // ======================================================================================
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&(outshare1s.clone(), outshare1d.clone())).unwrap());
-            println!("Sketching Weight: {:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 3u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());
@@ -177,7 +185,18 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let com_i = td.com_i.decompress().expect("REASON");
             // let now = SystemTime::now();
             let mut ver = same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
+            let now = SystemTime::now();
             let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
+            match now.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             // if res.is_err() {
             //     ver = false;
             //     println!("Triple Proof didn't verify!");
