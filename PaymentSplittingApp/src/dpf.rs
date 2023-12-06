@@ -2,6 +2,7 @@ use crate::prg;
 use crate::Group;
 use crate::prg::PrgSeed;
 use crate::DPF_DOMAIN;
+use crate::SETTLE_DOMAIN;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -322,6 +323,36 @@ where
         let bit_0 = false;
         let bit_1 = true;
         let target = (len + 1) == DPF_DOMAIN - 1;
+        let tau = state.seed.expand();
+        let seed0 = tau.seeds.get(bit_0);
+        let seed1 = tau.seeds.get(bit_1);
+        let new_bit0 = tau.bits.get(bit_0);
+        let new_bit1 = tau.bits.get(bit_1);
+        let (state_new_0, word_0) = self.my_eval_bit(&state, seed0.clone(), *new_bit0, bit_0, &target);
+        let (state_new_1, word_1) = self.my_eval_bit(&state, seed1.clone(), *new_bit1, bit_1, &target);
+
+        // Base Case! We've hit the target length
+        if target {
+            out.push(word_0);
+            out.push(word_1);
+            return; 
+        }
+        // Otherwise keep adding
+        self.eval_all_actual(len + 1, out, &state_new_0);
+        self.eval_all_actual(len + 1, out, &state_new_1);
+    }
+    pub fn eval_all_settle(&self) -> Vec<T> {
+        let mut out = vec![];
+        let state = self.eval_init();
+        self.eval_all_actual_settle(0, &mut out, &state);
+
+        out
+    }
+    pub fn eval_all_actual_settle(&self, len: usize, out: &mut Vec<T>, state: &EvalState) {
+
+        let bit_0 = false;
+        let bit_1 = true;
+        let target = (len + 1) == SETTLE_DOMAIN - 1;
         let tau = state.seed.expand();
         let seed0 = tau.seeds.get(bit_0);
         let seed1 = tau.seeds.get(bit_1);
