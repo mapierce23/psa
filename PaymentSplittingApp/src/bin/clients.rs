@@ -227,6 +227,7 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     encoded2.push(4u8);
     encoded2.extend(bincode::serialize(&transact_data2).unwrap());
     stream2.write(&encoded2).expect("failed to write");
+    println!("{:?}", encoded2.len());
 
     // Make sure transaction was valid 
     let mut buf = [0;40192];
