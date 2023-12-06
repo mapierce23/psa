@@ -384,6 +384,7 @@ fn main() -> io::Result<( )> {
     for handle in thread_vec {
         handle.join().unwrap();
     }
+    println!("Done!");
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
