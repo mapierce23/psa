@@ -84,6 +84,8 @@ where
         triples: Vec<TripleShare<T>>,
         mac_key: &T,
         mac_key2: &T,
+        val_share: &T,
+        val2_share: &T,
         sketch: &sketch::SketchOutput<T>,
     ) -> MulState<T> {
 
@@ -103,7 +105,7 @@ where
         out.xs.push(sketch.r_x.clone());
         out.ys.push(sketch.r2_x.clone());
 
-        let mut c0 = sketch.val2_share.clone();
+        let mut c0 = val2_share.clone();
         c0.negate();
         out.zs.push(c0);
 
