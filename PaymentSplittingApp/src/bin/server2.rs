@@ -60,6 +60,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             if res.is_err() {
                 let success = String::from("Skipped!");
                 let encoded = bincode::serialize(&success).unwrap();
+                let _ = stream.write(&encoded);
                 continue;
             }
             let td: TransactionData = res.unwrap();
