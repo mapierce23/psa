@@ -90,6 +90,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
+            println!("{:?}", bytes_read); 
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
