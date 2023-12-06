@@ -107,6 +107,9 @@ where
         let (val_share1, val_share2) = val.share();
         val.mul(&val);
         let (val2_share1, val2_share2) = val.share();
+        let mut mac_val_last = value_last.clone();
+        mac_val_last.mul(&mac_key_last);
+        let value_last_with_mac = (value_last.clone(), mac_val_last);
 
         let (dpf_key0, dpf_key1) = dpf::DPFKey::gen(alpha_bits, &values, &value_last_with_mac);
 
