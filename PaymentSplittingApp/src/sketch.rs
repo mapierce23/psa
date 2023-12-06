@@ -148,8 +148,6 @@ where
     pub fn sketch_at(
         &self,
         vector_in: &[(T, T)],
-        val_share: T,
-        val2_share: T,
         rand_stream: &mut impl rand::Rng,
     ) -> SketchOutput<T> {
         let mut out: SketchOutput<T> = SketchOutput::zero();
