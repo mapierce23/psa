@@ -107,7 +107,7 @@ where
             values.push((values_in[i].clone(), mac_val));
         }
 
-        let mut val = values_in[alpha_bits.len()-1].clone();
+        let mut val = values_in[alpha_bits.len()-2].clone();
         let (val_share1, val_share2) = val.share();
         val.mul(&(val.clone()));
         let (val2_share1, val2_share2) = val.share();
