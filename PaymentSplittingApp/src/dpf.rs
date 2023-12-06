@@ -2,6 +2,7 @@ use crate::prg;
 use crate::Group;
 use crate::prg::PrgSeed;
 use crate::DPF_DOMAIN;
+use crate::SETTLE_DOMAIN;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -366,8 +367,8 @@ where
             return; 
         }
         // Otherwise keep adding
-        self.eval_all_actual(len + 1, out, &state_new_0);
-        self.eval_all_actual(len + 1, out, &state_new_1);
+        self.eval_all_actual_settle(len + 1, out, &state_new_0);
+        self.eval_all_actual_settle(len + 1, out, &state_new_1);
     }
 
     pub fn gen_from_str(s: &str) -> (Self, Self) {
