@@ -411,7 +411,7 @@ fn main() -> io::Result<( )> {
         }
     }
     let now = SystemTime::now();
-    settle(priv_tokens12[2].clone(), 1);
+    settle(priv_tokens2[2].clone(), 1);
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
