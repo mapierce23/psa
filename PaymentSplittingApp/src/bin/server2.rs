@@ -63,7 +63,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
                 let _ = stream.write(&encoded);
                 continue;
             }
-            let td: TransactionData = res.unwrap();
+            let td: TransactionDataS2 = res.unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // ============================ VERIFY DPF SKETCHES =======================================
             let seed = PrgSeed::random();
