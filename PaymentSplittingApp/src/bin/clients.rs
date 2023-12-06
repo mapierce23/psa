@@ -213,7 +213,6 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
 }
 
 fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
-    let now = SystemTime::now();
     let mut stream1 = TcpStream::connect(SERVER1)?;
     let mut stream2 = TcpStream::connect(SERVER2)?;
 
@@ -247,16 +246,6 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
     if msg != String::from("Transaction Processed") {
         println!("Uh oh! Submitted invalid transaction.");
-    }
-    match now.elapsed() {
-        Ok(elapsed) => {
-            // it prints '2'
-            println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-        }
-        Err(e) => {
-            // an error occurred!
-            println!("Error: {e:?}");
-        }
     }
     Ok(())
 }
