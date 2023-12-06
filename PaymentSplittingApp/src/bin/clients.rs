@@ -321,7 +321,7 @@ fn main() -> io::Result<( )> {
     // Setup 5 Groups
     let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
-    // let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
+    let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
     // let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
     // let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
@@ -400,6 +400,18 @@ fn main() -> io::Result<( )> {
         handle.join().unwrap();
     }
     println!("Done!");
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("Latency {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
+    let now = SystemTime::now();
+    settle(priv_tokens12[2].clone(), 1);
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
