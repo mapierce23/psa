@@ -100,8 +100,6 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
 }
 
 fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionData) {
-
-    let now = SystemTime::now();
     let mut my_tokens = Vec::<GroupToken>::new();
     for j in 0..tokens.len() {
         my_tokens.push(tokens[j].token.clone());
@@ -211,21 +209,11 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
         triple_proof: transact_pf.clone(),
         token_proof: token_pf.clone(),
     };
-    match now.elapsed() {
-        Ok(elapsed) => {
-            // it prints '2'
-            println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-        }
-        Err(e) => {
-            // an error occurred!
-            println!("Error: {e:?}");
-        }
-    }
     (transact_data1, transact_data2)
 }
 
 fn send_transaction(transact_data1: &TransactionData, transact_data2: &TransactionData) -> io::Result<( )>{
-
+    let now = SystemTime::now();
     let mut stream1 = TcpStream::connect(SERVER1)?;
     let mut stream2 = TcpStream::connect(SERVER2)?;
 
@@ -258,6 +246,16 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
     if msg != String::from("Transaction Processed") {
         println!("Uh oh! Submitted invalid transaction.");
+    }
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
     }
     Ok(())
 }
