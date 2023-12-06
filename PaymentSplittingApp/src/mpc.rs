@@ -100,34 +100,66 @@ where
             rs: Vec::with_capacity(sketch::TRIPLES_PER_LEVEL),
         };
 
-        // 1) Check original sketch would have accepted.
         //      <r,x><r^2,x> - beta^2 =? 0
-        out.xs.push(sketch.r_x.clone());
-        out.ys.push(sketch.r2_x.clone());
-
+        // =============================================
+        out.xs.push(sketch.r_x.clone()); // z1
+        out.ys.push(sketch.r2_x.clone()); // z2
         let mut c0 = val2_share.clone();
         c0.negate();
-        out.zs.push(c0);
+        out.zs.push(c0); // - beta^2
+        // =============================================
 
         // 2) Check MAC values are correct.
         //    For linear query q, vector x, MAC key k
         //          (<q, kx> + k^2) - k^2 - k*<q,x> == 0?
 
         //   2a) Check that k^2 - k*k = 0
+        // =============================================
         let mut mac_key2_neg = mac_key2.clone();
         mac_key2_neg.negate();
 
         out.xs.push(mac_key.clone());
         out.ys.push(mac_key.clone());
         out.zs.push(mac_key2_neg);
-
+        // =============================================
         //   2b) Check k <r,x> - <r, kx> = 0
+        // =============================================
         out.xs.push(sketch.r_x.clone());
         out.ys.push(mac_key.clone());
-
         let mut sketch_r_kx_neg = sketch.r_kx.clone();
         sketch_r_kx_neg.negate(); 
         out.zs.push(sketch_r_kx_neg);
+        // =============================================
+        // check value shares are correct
+        // =============================================
+        let mut val2_share_neg = val2_share.clone();
+        val2_share_neg.negate();
+        out.xs.push(val_share.clone());
+        out.ys.push(val_share.clone());
+        out.zs.push(val2_share_neg);
+        // =============================================
+        // check z1^2 - z^2w
+        // =============================================
+        out.xs.push(sketch.r_x.clone());
+        out.ys.push(sketch.r_x.clone());
+        out.zs.push(T::zero);
+        let mut val_share_neg = val_share.clone();
+        val_share_neg.negate();
+        out.xs.push(sketch.r2_x.clone());
+        out.ys.push(val_share_neg);
+        out.zs.push(T::zero);
+        // =============================================
+        // check z1z2 - z3w
+        // =============================================
+        out.xs.push(sketch.r_x.clone());
+        out.ys.push(sketch.r2_x.clone());
+        out.zs.push(T::zero);
+        let mut val_share_neg = val_share.clone();
+        val_share_neg.negate();
+        out.xs.push(sketch.r3_x.clone());
+        out.ys.push(val_share_neg);
+        out.zs.push(T::zero);
+        // =============================================
 
         out.rs = vec![sketch.rand1.clone(), 
                     sketch.rand2.clone(), 
