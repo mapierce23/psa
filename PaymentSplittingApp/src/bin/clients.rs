@@ -366,40 +366,40 @@ fn main() -> io::Result<( )> {
 
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
-    // for i in 0..50 {
-    //     let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone());
-    //     let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone());
-    //     let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone());
-    //     let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone());
-    //     tdatavec.push((tdata1_1, tdata1_2));
-    //     tdatavec.push((tdata2_1, tdata2_2));
-    //     tdatavec.push((tdata3_1, tdata3_2));
-    //     tdatavec.push((tdata4_1, tdata4_2));     
-    // }
+    for i in 0..50 {
+        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone());
+        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone());
+        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone());
+        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone());
+        tdatavec.push((tdata1_1, tdata1_2));
+        tdatavec.push((tdata2_1, tdata2_2));
+        tdatavec.push((tdata3_1, tdata3_2));
+        tdatavec.push((tdata4_1, tdata4_2));     
+    }
 
-    // let now = SystemTime::now();
-    // for i in 0..TRIALS {
-    //     let td1 = (tdatavec[i].0).clone();
-    //     let td2 = (tdatavec[i].1).clone();
-    //     // send_transaction(&td1, &td2);
-    //     let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
-    //     thread_vec.push(handle);
-    // }
+    let now = SystemTime::now();
+    for i in 0..TRIALS {
+        let td1 = (tdatavec[i].0).clone();
+        let td2 = (tdatavec[i].1).clone();
+        // send_transaction(&td1, &td2);
+        let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
+        thread_vec.push(handle);
+    }
 
-    // for handle in thread_vec {
-    //     handle.join().unwrap();
-    // }
-    // println!("Done!");
-    // match now.elapsed() {
-    //     Ok(elapsed) => {
-    //         // it prints '2'
-    //         println!("Latency {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-    //     }
-    //     Err(e) => {
-    //         // an error occurred!
-    //         println!("Error: {e:?}");
-    //     }
-    // }
+    for handle in thread_vec {
+        handle.join().unwrap();
+    }
+    println!("Done!");
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("Latency {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
     let now = SystemTime::now();
     settle(priv_tokens2[2].clone(), 1);
     match now.elapsed() {
