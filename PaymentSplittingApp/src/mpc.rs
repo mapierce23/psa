@@ -101,9 +101,9 @@ where
         // 1) Check original sketch would have accepted.
         //      <r,x><r^2,x> - beta^2 =? 0
         out.xs.push(sketch.r_x.clone());
-        out.ys.push(sketch.r_2x.clone());
+        out.ys.push(sketch.r2_x.clone());
 
-        let mut c0 = sketch.val2_share();
+        let mut c0 = sketch.val2_share.clone();
         c0.negate();
         out.zs.push(c0);
 
