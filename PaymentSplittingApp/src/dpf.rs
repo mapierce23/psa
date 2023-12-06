@@ -2,8 +2,6 @@ use crate::prg;
 use crate::Group;
 use crate::prg::PrgSeed;
 use crate::DPF_DOMAIN;
-use crate::SETTLE_DOMAIN;
-
 use serde::Deserialize;
 use serde::Serialize;
 
