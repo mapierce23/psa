@@ -15,8 +15,8 @@ pub const TRIPLES_PER_LEVEL: usize = 4;
 pub struct SketchDPFKey<T, U> {
     pub mac_key: T,
     pub mac_key2: T,
-    pub mac_key_last: U,
-    pub mac_key2_last: U,
+    pub val_share: T,
+    pub val2_share: T,
     pub key: dpf::DPFKey<(T, T), (U, U)>,
 
     pub triples: Vec<mpc::TripleShare<T>>,
@@ -103,9 +103,10 @@ where
             values.push((values_in[i].clone(), mac_val));
         }
 
-        let mut mac_val_last = value_last.clone();
-        mac_val_last.mul(&mac_key_last);
-        let value_last_with_mac = (value_last.clone(), mac_val_last);
+        let val = values_in[alpha_bits.len()-1].clone();
+        let mut (val_share1, val_share2) = val.share();
+        val.mul(&val);
+        let (val2_share1, val2_share2) = val.share();
 
         let (dpf_key0, dpf_key1) = dpf::DPFKey::gen(alpha_bits, &values, &value_last_with_mac);
 
@@ -122,16 +123,16 @@ where
             SketchDPFKey {
                 mac_key: mac_key_sh0,
                 mac_key2: mac_key2_sh0,
-                mac_key_last: mac_key_sh0_last,
-                mac_key2_last: mac_key2_sh0_last,
+                val_share: val_share1,
+                val2_share: val2_share1,
                 key: dpf_key0,
                 triples: triples0,
             },
             SketchDPFKey {
                 mac_key: mac_key_sh1,
                 mac_key2: mac_key2_sh1,
-                mac_key_last: mac_key_sh1_last,
-                mac_key2_last: mac_key2_sh1_last,
+                val_share: val_share2,
+                val2_share: val2_share2,
                 key: dpf_key1,
                 triples: triples1,
             },
