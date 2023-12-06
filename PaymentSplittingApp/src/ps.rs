@@ -176,11 +176,10 @@ impl ServerData {
 			db[i].sub(&dest_vec[i]);
 		}
 	}
-	pub fn encrypt_db(db: &Vec<FieldElm>, key: &Vec<Vec<u8>>, r_seed: Vec<u8>) -> (FieldElm, Vec<FieldElm>) {
+	pub fn encrypt_db(db: &Vec<FieldElm>, key: &Vec<Vec<u8>>, r_seed: Vec<u8>) -> Vec<FieldElm> {
     	let zero_bytes = [0u8; 16];
 		// Disguise Database for Settling
 		let mut enc_db = db.clone();
-		let mut sum = FieldElm::zero();
 		for j in 0..MAX_GROUP_NUM {
 			// Reset the nonce for every group
 			let mut prf = aes::ctr(KeySize::KeySize128, &key[j], &r_seed);
@@ -190,10 +189,9 @@ impl ServerData {
 				output.extend(zero_bytes.clone());
 				let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
 				enc_db[i + (j * MAX_GROUP_SIZE)].add(&FieldElm {value: scalar});
-				sum.add(&enc_db[i + (j * MAX_GROUP_SIZE)]);
 			}
 		}
-		return (sum, enc_db);
+		return enc_db;
 	}
 
 	pub fn settle(enc_db1: &Vec<FieldElm>, enc_db2: &Vec<FieldElm>, keyb: &DPFKey<FieldElm, FieldElm>) -> Vec<FieldElm> {
