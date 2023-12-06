@@ -246,75 +246,75 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     Ok(())
 }
 
-// fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
-//     let mut stream1 = TcpStream::connect(SERVER1)?;
-//     let mut stream2 = TcpStream::connect(SERVER2)?;
-//     println!("Settling Group #{:?}", group_num);
-//     let now = SystemTime::now();
-//     // DPF Key generation
-//     let alpha_bits = my_u32_to_bits(8, group_num);
-//     let values = vec![
-//         FieldElm::from(0u32),
-//         FieldElm::from(0u32),
-//         FieldElm::from(0u32),
-//         FieldElm::from(0u32),
-//         FieldElm::from(0u32),
-//         FieldElm::from(0u32),
-//         FieldElm::from(1u32),
-//     ];
-//     let (key1, key2) = DPFKey::gen(&alpha_bits, &values, &FieldElm::zero());
-//     let r_bytes = rand::thread_rng().gen::<[u8; 16]>();
-//     // Send to S1
-//     let s1_data = SettleData {
-//         dpf_key: key1,
-//         r_seed: r_bytes.to_vec(),
-//     };
-//     let mut encoded1: Vec<u8> = Vec::new();
-//     encoded1.push(5u8);
-//     encoded1.extend(bincode::serialize(&s1_data).unwrap());
-//     stream1.write(&encoded1).expect("failed to write");
-//     // Send to S2
-//     let s2_data = SettleData {
-//         dpf_key: key2,
-//         r_seed: r_bytes.to_vec(),
-//     };
-//     let mut encoded2: Vec<u8> = Vec::new();
-//     encoded2.push(5u8);
-//     encoded2.extend(bincode::serialize(&s2_data).unwrap());
-//     stream2.write(&encoded2).expect("failed to write");
-//     match now.elapsed() {
-//         Ok(elapsed) => {
-//             // it prints '2'
-//             println!("{}", elapsed.as_nanos());
-//         }
-//         Err(e) => {
-//             // an error occurred!
-//             println!("Error: {e:?}");
-//         }
-//     }
+fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
+    let mut stream1 = TcpStream::connect(SERVER1)?;
+    let mut stream2 = TcpStream::connect(SERVER2)?;
+    println!("Settling Group #{:?}", group_num);
+    let now = SystemTime::now();
+    // DPF Key generation
+    let alpha_bits = my_u32_to_bits(8, group_num);
+    let values = vec![
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(0u32),
+        FieldElm::from(1u32),
+    ];
+    let (key1, key2) = DPFKey::gen(&alpha_bits, &values, &FieldElm::zero());
+    let r_bytes = rand::thread_rng().gen::<[u8; 16]>();
+    // Send to S1
+    let s1_data = SettleData {
+        dpf_key: key1,
+        r_seed: r_bytes.to_vec(),
+    };
+    let mut encoded1: Vec<u8> = Vec::new();
+    encoded1.push(5u8);
+    encoded1.extend(bincode::serialize(&s1_data).unwrap());
+    stream1.write(&encoded1).expect("failed to write");
+    // Send to S2
+    let s2_data = SettleData {
+        dpf_key: key2,
+        r_seed: r_bytes.to_vec(),
+    };
+    let mut encoded2: Vec<u8> = Vec::new();
+    encoded2.push(5u8);
+    encoded2.extend(bincode::serialize(&s2_data).unwrap());
+    stream2.write(&encoded2).expect("failed to write");
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("{}", elapsed.as_nanos());
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
 
-//     let mut buf1 = [0;8192];
-//     let mut bytes_read1 = 0;
-//     while bytes_read1 == 0 {
-//         bytes_read1 = stream1.read(&mut buf1)?;
-//     }
-//     let mut buf2 = [0;8192];
-//     let mut bytes_read2 = 0;
-//     while bytes_read2 == 0 {
-//         bytes_read2 = stream2.read(&mut buf2)?;
-//     }
-//     let bv_1: Vec<FieldElm> = bincode::deserialize(&buf1[0..bytes_read1]).unwrap();
-//     let bv_2: Vec<FieldElm> = bincode::deserialize(&buf2[0..bytes_read2]).unwrap();
-//     let mut bv = Vec::<FieldElm>::new();
-//     for i in 0..MAX_GROUP_SIZE {
-//         let mut sum = FieldElm::zero();
-//         sum.add(&bv_1[i]);
-//         sum.add(&bv_2[i]);
-//         bv.push(sum);
-//     }
-//     let bv = GroupTokenPriv::decrypt_db(bv.clone(), token.prf_keys.0, token.prf_keys.1, r_bytes.to_vec());
-//     Ok(())
-// }
+    let mut buf1 = [0;8192];
+    let mut bytes_read1 = 0;
+    while bytes_read1 == 0 {
+        bytes_read1 = stream1.read(&mut buf1)?;
+    }
+    let mut buf2 = [0;8192];
+    let mut bytes_read2 = 0;
+    while bytes_read2 == 0 {
+        bytes_read2 = stream2.read(&mut buf2)?;
+    }
+    let bv_1: Vec<FieldElm> = bincode::deserialize(&buf1[0..bytes_read1]).unwrap();
+    let bv_2: Vec<FieldElm> = bincode::deserialize(&buf2[0..bytes_read2]).unwrap();
+    let mut bv = Vec::<FieldElm>::new();
+    for i in 0..MAX_GROUP_SIZE {
+        let mut sum = FieldElm::zero();
+        sum.add(&bv_1[i]);
+        sum.add(&bv_2[i]);
+        bv.push(sum);
+    }
+    let bv = GroupTokenPriv::decrypt_db(bv.clone(), token.prf_keys.0, token.prf_keys.1, r_bytes.to_vec());
+    Ok(())
+}
 
 fn main() -> io::Result<( )> {
 
