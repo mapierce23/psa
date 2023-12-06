@@ -197,6 +197,7 @@ impl ServerData {
 	pub fn settle(enc_db1: &Vec<FieldElm>, enc_db2: &Vec<FieldElm>, keyb: &DPFKey<FieldElm, FieldElm>) -> Vec<FieldElm> {
 
 		let mut enc_db = Vec::<FieldElm>::new();
+		let evalb = keyb.eval_all();
 		for i in 0..MAX_GROUP_SIZE * MAX_GROUP_NUM {
 			let mut sum = FieldElm::zero();
 			sum.add(&enc_db1[i]);
@@ -208,8 +209,8 @@ impl ServerData {
 			let mut total = FieldElm::zero();
 			for j in 0..MAX_GROUP_NUM {
 				let alpha_bits = u32_to_bits(6, j.try_into().unwrap());
-				let mut evalb = keyb.eval(&alpha_bits[0..5].to_vec());
-				evalb.0[3].mul(&(enc_db[(j * MAX_GROUP_SIZE) + i]));
+				let mut evalb = evalb[j].clone();
+				evalb.mul(&(enc_db[(j * MAX_GROUP_SIZE) + i]));
 				total.add(&evalb.0[3]);
 			}
 			balance_vec.push(total);
