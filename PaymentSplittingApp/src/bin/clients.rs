@@ -256,7 +256,7 @@ fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
     let alpha_bits = my_u32_to_bits(SETTLE_DOMAIN.try_into().unwrap(), group_num);
     let mut values = Vec::<FieldElm>::new();
     for i in 0..SETTLE_DOMAIN - 2 {
-        betas.push(FieldElm::zero());
+        values.push(FieldElm::zero());
     }
     values.push(FieldElm::from(1u32));
     let (key1, key2) = DPFKey::gen(&alpha_bits, &values, &FieldElm::zero());
