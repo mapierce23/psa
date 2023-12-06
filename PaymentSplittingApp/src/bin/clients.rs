@@ -38,7 +38,7 @@ use payapp::DPF_DOMAIN;
 //pub const SERVER2: &str = "127.0.0.1:7879";
 pub const SERVER1: &str = "10.138.0.2:7878";
 pub const SERVER2: &str = "10.128.0.4:7879";
-pub const TRIALS: usize = 50;
+pub const TRIALS: usize = 200;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
