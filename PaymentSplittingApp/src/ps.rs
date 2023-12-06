@@ -211,7 +211,7 @@ impl ServerData {
 				let alpha_bits = u32_to_bits(6, j.try_into().unwrap());
 				let mut evalb = evalb[j].clone();
 				evalb.mul(&(enc_db[(j * MAX_GROUP_SIZE) + i]));
-				total.add(&evalb.0[3]);
+				total.add(&evalb);
 			}
 			balance_vec.push(total);
 		}
