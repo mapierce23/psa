@@ -105,7 +105,7 @@ where
 
         let mut val = values_in[alpha_bits.len()-1].clone();
         let (val_share1, val_share2) = val.share();
-        val.mul(&val);
+        val.mul(&(val.clone());
         let (val2_share1, val2_share2) = val.share();
         let mut mac_val_last = value_last.clone();
         mac_val_last.mul(&mac_key_last);
