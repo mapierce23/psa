@@ -367,7 +367,7 @@ fn main() -> io::Result<( )> {
     for i in 0..TRIALS {
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();
-        send_transaction(&td1, &td2)
+        send_transaction(&td1, &td2);
         // let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
         // thread_vec.push(handle);
     }
