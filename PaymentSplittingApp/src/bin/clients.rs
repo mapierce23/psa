@@ -332,7 +332,7 @@ fn main() -> io::Result<( )> {
     client1.push(priv_tokens1[2].clone());
     client1.push(priv_tokens1[3].clone());
     client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[5].clone());
+
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
     client2.push(priv_tokens1[5].clone());
