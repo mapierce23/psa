@@ -58,7 +58,8 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         if buf[0] == 4 {
             let res = bincode::deserialize(&buf[1..bytes_read]);
             if res.is_err() {
-                println!("Skip this one.");
+                let success = String::from("Skipped!");
+                let encoded = bincode::serialize(&success).unwrap();
                 continue;
             }
             let td: TransactionData = res.unwrap();
