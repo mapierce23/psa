@@ -45,8 +45,8 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
     for _ in 0..1000 {
 
         // Remaining bytes is the type of request & the request itself
-        let mut buf = vec![0u8; 3325];
-        let bytes_read = stream.read_exact(&mut buf)?;
+        let mut buf = [0;40192];
+        let bytes_read = stream.read(&mut buf)?;
 
         if bytes_read == 0 {
             continue;
@@ -56,8 +56,12 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            println!("{:?}", bytes_read); 
-            let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let res = bincode::deserialize(&buf[1..bytes_read]);
+            if res.is_err() {
+                println!("Skip this one.");
+                continue;
+            }
+            let td: TransactionData = res.unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // ============================ VERIFY DPF SKETCHES =======================================
             let seed = PrgSeed::random();
