@@ -97,8 +97,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let mut sketches = vec![];
             sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
             sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
-            let state1s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &sketches[0]);
-            let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &sketches[1]);
+            let state1s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &(&td.dpf_src).val_share, &(&td.dpf_src).val2_share, &sketches[0]);
+            let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
             // ===============================================================
