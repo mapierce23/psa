@@ -195,7 +195,6 @@ impl ServerData {
 	}
 
 	pub fn settle(enc_db1: &Vec<FieldElm>, enc_db2: &Vec<FieldElm>, keyb: &DPFKey<FieldElm, FieldElm>) -> Vec<FieldElm> {
-		println!("entering settle!");
 		let mut enc_db = Vec::<FieldElm>::new();
 		let evalb = keyb.eval_all();
 		for i in 0..MAX_GROUP_SIZE * MAX_GROUP_NUM {
@@ -285,8 +284,8 @@ impl GroupTokenPriv {
 
 	pub fn decrypt_db(mut enc_db: Vec<FieldElm>, key1: Vec<u8>, key2: Vec<u8>, r_seed: Vec<u8>) -> Vec<FieldElm> {
 		let zero_bytes = [0u8; 16];
-    	let mut prf1 = aes::ctr(KeySize::KeySize128, &key1, &r_seed);
-    	let mut prf2 = aes::ctr(KeySize::KeySize128, &key2, &r_seed);
+    		let mut prf1 = aes::ctr(KeySize::KeySize128, &key1, &r_seed);
+    		let mut prf2 = aes::ctr(KeySize::KeySize128, &key2, &r_seed);
 
 		for i in 0..MAX_GROUP_SIZE {
 			let mut output1: Vec<u8> = repeat(0u8).take(16).collect();
