@@ -258,7 +258,7 @@ fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
     for i in 0..SETTLE_DOMAIN - 2 {
         betas.push(FieldElm::zero());
     }
-    values.push(FieldElm::from(1u32);
+    values.push(FieldElm::from(1u32));
     let (key1, key2) = DPFKey::gen(&alpha_bits, &values, &FieldElm::zero());
     let r_bytes = rand::thread_rng().gen::<[u8; 16]>();
     // Send to S1
