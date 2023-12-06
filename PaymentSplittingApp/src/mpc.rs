@@ -142,23 +142,23 @@ where
         // =============================================
         out.xs.push(sketch.r_x.clone());
         out.ys.push(sketch.r_x.clone());
-        out.zs.push(T::zero);
+        out.zs.push(T::zero());
         let mut val_share_neg = val_share.clone();
         val_share_neg.negate();
         out.xs.push(sketch.r2_x.clone());
         out.ys.push(val_share_neg);
-        out.zs.push(T::zero);
+        out.zs.push(T::zero());
         // =============================================
         // check z1z2 - z3w
         // =============================================
         out.xs.push(sketch.r_x.clone());
         out.ys.push(sketch.r2_x.clone());
-        out.zs.push(T::zero);
+        out.zs.push(T::zero());
         let mut val_share_neg = val_share.clone();
         val_share_neg.negate();
         out.xs.push(sketch.r3_x.clone());
         out.ys.push(val_share_neg);
-        out.zs.push(T::zero);
+        out.zs.push(T::zero());
         // =============================================
 
         out.rs = vec![sketch.rand1.clone(), 
