@@ -33,6 +33,7 @@ use payapp::dpf::DPFKey;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
+use payapp::SETTLE_DOMAIN;
 
 //pub const SERVER1: &str = "127.0.0.1:7878";
 //pub const SERVER2: &str = "127.0.0.1:7879";
