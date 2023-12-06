@@ -46,7 +46,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
 
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;40192];
-        let bytes_read = stream.read(&mut buf)?;
+        let bytes_read = stream.read_to_end(&mut buf)?;
 
         if bytes_read == 0 {
             continue;
@@ -56,14 +56,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let res = bincode::deserialize(&buf[1..bytes_read]);
-            if res.is_err() {
-                let success = String::from("Skipped!");
-                let encoded = bincode::serialize(&success).unwrap();
-                let _ = stream.write(&encoded);
-                continue;
-            }
-            let td: TransactionData = res.unwrap();
+            let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // ============================ VERIFY DPF SKETCHES =======================================
             let seed = PrgSeed::random();
