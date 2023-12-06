@@ -107,7 +107,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("{}", elapsed.as_nanos());
+                    println!("Token pf {}", elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
@@ -190,7 +190,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("{}", elapsed.as_nanos());
+                    println!("Transaction Pf {}", elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
