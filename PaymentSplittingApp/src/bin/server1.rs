@@ -129,16 +129,10 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             key[0] = 2u8;
             let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
             let mut res = bincode::deserialize(&bin);
-            if res.is_err() {
-                let success = String::from("skipped");
-                let encoded = bincode::serialize(&success).unwrap();
-                let _ = stream.write(&encoded);
-                continue;
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
             }
-            // while res.is_err() {
-            //     bin = con.get(key.clone()).unwrap();
-            //     res = bincode::deserialize(&bin);
-            // }
             let now = SystemTime::now();
             let s2data: TransactionPackage = res.unwrap();
             let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
