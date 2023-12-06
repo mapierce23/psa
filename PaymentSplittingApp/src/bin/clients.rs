@@ -70,16 +70,6 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     }
     let (aids, pubkey): (Vec<u64>, IssuerPubKey) = bincode::deserialize(&buf[0..bytes_read]).unwrap();
     let creds = leader.group_setup(aids, &stream1, pubkey.clone())?;
-    match now.elapsed() {
-        Ok(elapsed) => {
-            // it prints '2'
-            println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-        }
-        Err(e) => {
-            // an error occurred!
-            println!("Error: {e:?}");
-        }
-    }
 
     // The credential is the registration token. Each group member submits their
     // reg token to the server in exchange for a group token.
@@ -97,16 +87,6 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
             bytes_read = stream1.read(&mut buf)?;
         }
         let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
-        match now.elapsed() {
-            Ok(elapsed) => {
-                // it prints '2'
-                println!("{}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-            }
-            Err(e) => {
-                // an error occurred!
-                println!("Error: {e:?}");
-            }
-        }
         let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
         let priv_token = GroupTokenPriv {
             prf_keys: prf_keys.clone(),
