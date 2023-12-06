@@ -46,7 +46,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
 
         // Remaining bytes is the type of request & the request itself
         let mut buf = vec![0u8; 3325];
-        stream.read_exact(&mut buf)?;
+        let bytes_read = stream.read_exact(&mut buf)?;
 
         if bytes_read == 0 {
             continue;
