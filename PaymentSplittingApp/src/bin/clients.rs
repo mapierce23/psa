@@ -335,29 +335,29 @@ fn main() -> io::Result<( )> {
     // Setup 5 Groups
     let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
-    let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
-    let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
-    let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
     let mut client1 = Vec::<GroupTokenPriv>::new();
     client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens2[3].clone());
-    client1.push(priv_tokens5[4].clone());
+    client1.push(priv_tokens1[3].clone());
+    client1.push(priv_tokens1[4].clone());
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
     client2.push(priv_tokens1[5].clone());
-    client2.push(priv_tokens2[3].clone());
-    client2.push(priv_tokens5[9].clone());
+    client2.push(priv_tokens1[3].clone());
+    client2.push(priv_tokens1[9].clone());
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
     client3.push(priv_tokens1[1].clone());
-    client3.push(priv_tokens4[6].clone());
-    client3.push(priv_tokens5[2].clone());
+    client3.push(priv_tokens1[6].clone());
+    client3.push(priv_tokens1[2].clone());
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
     client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens2[3].clone());
-    client4.push(priv_tokens4[4].clone());
+    client4.push(priv_tokens1[3].clone());
+    client4.push(priv_tokens1[4].clone());
 
     let mut tdatavec = Vec::<(TransactionData, TransactionData)>::new();
 
