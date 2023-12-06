@@ -119,9 +119,20 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
+            let now_d = SystemTime::now();
             let mut hasher = Sha256::new();
             hasher.update(bincode::serialize(&w1).unwrap());
             let result = hasher.finalize();
+            match now_s.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             let package = TransactionPackage {
                     strin: "Server1",
                     gp_val_ver: (&result[..]).to_vec(),
