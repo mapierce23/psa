@@ -133,6 +133,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 let success = String::from("skipped");
                 let encoded = bincode::serialize(&success).unwrap();
                 let _ = stream.write(&encoded);
+                continue;
             }
             // while res.is_err() {
             //     bin = con.get(key.clone()).unwrap();
