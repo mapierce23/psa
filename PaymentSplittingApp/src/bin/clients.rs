@@ -339,40 +339,40 @@ fn main() -> io::Result<( )> {
 
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
+    client2.push(priv_tokens1[2].clone());
+    client2.push(priv_tokens1[3].clone());
+    client2.push(priv_tokens1[4].clone());
+    client2.push(priv_tokens1[3].clone());
+    client2.push(priv_tokens1[4].clone());
+    client2.push(priv_tokens1[2].clone());
+    client2.push(priv_tokens1[3].clone());
+    client2.push(priv_tokens1[4].clone());
+    client2.push(priv_tokens1[3].clone());
+    client2.push(priv_tokens1[4].clone());
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
+    client3.push(priv_tokens1[2].clone());
+    client3.push(priv_tokens1[3].clone());
+    client3.push(priv_tokens1[4].clone());
+    client3.push(priv_tokens1[3].clone());
+    client3.push(priv_tokens1[4].clone());
+    client3.push(priv_tokens1[2].clone());
+    client3.push(priv_tokens1[3].clone());
+    client3.push(priv_tokens1[4].clone());
+    client3.push(priv_tokens1[3].clone());
+    client3.push(priv_tokens1[4].clone());
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
+    client4.push(priv_tokens1[2].clone());
+    client4.push(priv_tokens1[3].clone());
+    client4.push(priv_tokens1[4].clone());
+    client4.push(priv_tokens1[3].clone());
+    client4.push(priv_tokens1[4].clone());
+    client4.push(priv_tokens1[2].clone());
+    client4.push(priv_tokens1[3].clone());
+    client4.push(priv_tokens1[4].clone());
+    client4.push(priv_tokens1[3].clone());
+    client4.push(priv_tokens1[4].clone());
 
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
