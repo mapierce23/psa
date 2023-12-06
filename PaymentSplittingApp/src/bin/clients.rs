@@ -347,7 +347,7 @@ fn main() -> io::Result<( )> {
     client4.push(priv_tokens1[3].clone());
     client4.push(priv_tokens1[4].clone());
 
-    let mut tdatavec = Vec::<(TransactionData, TransactionData)>::new();
+    let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
     for i in 0..50 {
         let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone());
