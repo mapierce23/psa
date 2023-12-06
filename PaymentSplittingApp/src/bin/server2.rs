@@ -47,7 +47,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;40192];
         let bytes_read = stream.read(&mut buf)?;
-
+        println!("{:?}", bytes_read);
         if bytes_read == 0 {
             continue;
         }
