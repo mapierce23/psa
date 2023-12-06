@@ -99,11 +99,11 @@ where
         };
 
         // 1) Check original sketch would have accepted.
-        //      <r,x>^2 - <r^2,x> =? 0
+        //      <r,x><r^2,x> - beta^2 =? 0
         out.xs.push(sketch.r_x.clone());
-        out.ys.push(sketch.r_x.clone());
+        out.ys.push(sketch.r_2x.clone());
 
-        let mut c0 = sketch.r2_x.clone();
+        let mut c0 = sketch.val2_share();
         c0.negate();
         out.zs.push(c0);
 
