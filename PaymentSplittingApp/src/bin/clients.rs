@@ -282,16 +282,6 @@ fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
     encoded2.push(5u8);
     encoded2.extend(bincode::serialize(&s2_data).unwrap());
     stream2.write(&encoded2).expect("failed to write");
-    match now.elapsed() {
-        Ok(elapsed) => {
-            // it prints '2'
-            println!("{}", elapsed.as_nanos());
-        }
-        Err(e) => {
-            // an error occurred!
-            println!("Error: {e:?}");
-        }
-    }
 
     let mut buf1 = [0;8192];
     let mut bytes_read1 = 0;
