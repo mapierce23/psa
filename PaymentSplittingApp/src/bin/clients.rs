@@ -237,7 +237,6 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     let mut buf = [0;40192];
     let mut bytes_read = 0;
     while bytes_read == 0 {
-        println!("waiting");
         bytes_read = stream2.read(&mut buf)?;
     }
     let msg: String = bincode::deserialize(&buf[0..bytes_read]).unwrap();
@@ -322,30 +321,30 @@ fn main() -> io::Result<( )> {
     // Setup 5 Groups
     let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
-    let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
-    let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
-    let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
+    // let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
     let mut client1 = Vec::<GroupTokenPriv>::new();
     client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
+    // client1.push(priv_tokens1[3].clone());
+    // client1.push(priv_tokens1[4].clone());
 
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
     client2.push(priv_tokens1[5].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[8].clone());
+    // client2.push(priv_tokens1[3].clone());
+    // client2.push(priv_tokens1[8].clone());
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
     client3.push(priv_tokens1[1].clone());
-    client3.push(priv_tokens1[6].clone());
-    client3.push(priv_tokens1[2].clone());
+    // client3.push(priv_tokens1[6].clone());
+    // client3.push(priv_tokens1[2].clone());
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
     client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
+    // client4.push(priv_tokens1[3].clone());
+    // client4.push(priv_tokens1[4].clone());
 
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
