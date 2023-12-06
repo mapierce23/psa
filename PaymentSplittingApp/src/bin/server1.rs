@@ -200,23 +200,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // ENCRYPT THE DATABASE, SEND TO S2
             let guard = database.lock().unwrap();
             let key_guard = prf_keys.lock().unwrap();
-            let (val, enc_db1) = ServerData::encrypt_db(guard.deref(), key_guard.deref(), settle_data.r_seed);
+            let enc_db1 = ServerData::encrypt_db(guard.deref(), key_guard.deref(), settle_data.r_seed);
             drop(guard);
-
-            // PUBLISH COMMITMENT FIRST
-            let mut rng = rand::thread_rng();
-            let r = Scalar::random(&mut rng);
-            let com = create_com(val, r);
-            let com_bytes = com.0.compress().to_bytes();
-            let mut key: Vec<u8> = Vec::new();
-            key.extend([1u8, 5u8]); // SERVER ID, TYPE
-            let _ : () = con.set(key.clone(), com_bytes.to_vec()).unwrap();
-            // AWAIT COMMITMENT FROM S2
-            key[0] = 2u8;
-            let mut com_2: Vec<u8> = con.get(key.clone()).unwrap();
-            while com_2.len() == 0 {
-                com_2 = con.get(key.clone()).unwrap();
-            }
             // NOW PUBLISH ENCRYPTED DATABASE VECTOR
             let encoded = bincode::serialize(&enc_db1).unwrap();
             let mut key: Vec<u8> = Vec::new();
