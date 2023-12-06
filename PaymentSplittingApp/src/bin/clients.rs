@@ -221,7 +221,6 @@ fn send_transaction(transact_data1: &TransactionData, transact_data2: &Transacti
     encoded1.push(4u8);
     encoded1.extend(bincode::serialize(&transact_data1).unwrap());
     stream1.write(&encoded1).expect("failed to write");
-    println!("{:?}", encoded1.len());
     // Send to S2
     let mut encoded2: Vec<u8> = Vec::new();
     encoded2.push(4u8);
@@ -331,24 +330,24 @@ fn main() -> io::Result<( )> {
 
     let mut client1 = Vec::<GroupTokenPriv>::new();
     client1.push(priv_tokens1[2].clone());
-    client1.push(priv_tokens1[3].clone());
-    client1.push(priv_tokens1[4].clone());
-    client1.push(priv_tokens1[5].clone());
+    // client1.push(priv_tokens1[3].clone());
+    // client1.push(priv_tokens1[4].clone());
+    // client1.push(priv_tokens1[5].clone());
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
     client2.push(priv_tokens1[5].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[8].clone());
+    // client2.push(priv_tokens1[3].clone());
+    // client2.push(priv_tokens1[8].clone());
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
     client3.push(priv_tokens1[1].clone());
-    client3.push(priv_tokens1[6].clone());
-    client3.push(priv_tokens1[2].clone());
+    // client3.push(priv_tokens1[6].clone());
+    // client3.push(priv_tokens1[2].clone());
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
     client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
+    // client4.push(priv_tokens1[3].clone());
+    // client4.push(priv_tokens1[4].clone());
 
     let mut tdatavec = Vec::<(TransactionData, TransactionData)>::new();
 
@@ -368,9 +367,8 @@ fn main() -> io::Result<( )> {
         let now_s = SystemTime::now();
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();
-        send_transaction(&td1, &td2);
-        // let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
-        // thread_vec.push(handle);
+        let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
+        thread_vec.push(handle);
     }
 
     for handle in thread_vec {
