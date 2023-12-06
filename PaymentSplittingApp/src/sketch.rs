@@ -3,7 +3,7 @@ use crate::mpc;
 
 use serde::{Deserialize, Serialize};
 
-pub const TRIPLES_PER_LEVEL: usize = 4;
+pub const TRIPLES_PER_LEVEL: usize = 7;
 
 /// All-prefix DPF supporting protection against additive attacks.
 ///
