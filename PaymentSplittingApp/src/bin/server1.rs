@@ -102,12 +102,14 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
             // ===============================================================
+            let sum = 0;
             let now = SystemTime::now();
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("Token pf {}", elapsed.as_nanos());
+                    sum += elapsed.as_nanos();
+                    // println!("Token pf {}", elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
@@ -190,7 +192,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
-                    println!("Transaction Pf {}", elapsed.as_nanos());
+                    println!("Transaction Pf {}", sum + elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
