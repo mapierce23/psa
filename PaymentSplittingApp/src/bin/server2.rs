@@ -19,6 +19,7 @@ use sha2::Sha256;
 use sha2::Digest;
 use rand_chacha::ChaCha8Rng;
 use rand::thread_rng;
+use redis::RedisResult;
 use rand::Rng;
 use redis::Connection;
 use redis::Commands;
