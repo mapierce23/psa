@@ -13,6 +13,7 @@ rand = "0.7.3"
 num-bigint = { version = "0.3", features = ["rand", "serde"] }
 rand_core = "0.5.1"
 serde_json = "1.0"
+rand_chacha: "0.4.0"
 ctr = "0.9.2"
 lazy_static = "1"
 hex_fmt = "0.3"
