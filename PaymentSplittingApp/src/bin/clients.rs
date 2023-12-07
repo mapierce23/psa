@@ -39,7 +39,7 @@ use payapp::SETTLE_DOMAIN;
 //pub const SERVER2: &str = "127.0.0.1:7879";
 pub const SERVER1: &str = "10.138.0.2:7878";
 pub const SERVER2: &str = "10.128.0.4:7879";
-pub const TRIALS: usize = 50;
+pub const TRIALS: usize = 51;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
@@ -383,7 +383,7 @@ fn main() -> io::Result<( )> {
     send_transaction(&td1, &td2);
     
     let now = SystemTime::now();
-    for i in 0..TRIALS {
+    for i in 1..TRIALS {
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();
         // send_transaction(&td1, &td2);
