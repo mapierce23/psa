@@ -191,7 +191,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             MulState::verify(&outshare1d, &s2sketch.0);
             // ======================================================================================
             // Verify triple proof!
-            let now_d = SystemTime::now();
+            
             let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
             let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
             let g_r2 = g_r2_1 + g_r2_2;
@@ -206,16 +206,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let comix = comix_1 + comix_2;
             let g_r1 = td.g_r1.decompress().expect("REASON");
             let com_i = td.com_i.decompress().expect("REASON");
-            match now_d.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
+            let now_d = SystemTime::now();
             let mut ver = same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
             let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
             // if res.is_err() {
@@ -231,6 +222,16 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 // Proofs have been verified, now complete transaction
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
+            }
+            match now_d.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
