@@ -354,8 +354,12 @@ fn main() -> io::Result<( )> {
 
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
+    let val = false;
     for i in 0..50 {
-        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), true);
+        if i == 0 {
+            val = true;
+        }
+        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), val);
         let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
         let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
         let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
