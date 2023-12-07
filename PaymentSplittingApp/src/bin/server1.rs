@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::ops::DerefMut;
 use hmac::{Hmac, Mac, NewMac};
+use rand::SeedableRng;
 use sha2::Sha256;
 use sha2::Digest;
 use rand_chacha::ChaCha8Rng;
