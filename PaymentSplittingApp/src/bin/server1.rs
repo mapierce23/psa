@@ -97,20 +97,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 4 {
             let now_d = SystemTime::now();
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-            let now_s = SystemTime::now();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
-            match now_s.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
             // VERIFY DPF SKETCHES
-            let now_d = SystemTime::now();
             let seed = PrgSeed::random();
             let mut sketches = vec![];
             sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
@@ -176,7 +164,9 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 bin = con.get(key.clone()).unwrap();
                 res = bincode::deserialize(&bin);
             }
+            
             let s2data: TransactionPackage = res.unwrap();
+            let now_d = SystemTime::now();
             let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
             let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
             let outshare1s = state1s.out_share(&cor_s);
@@ -199,6 +189,16 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
             MulState::verify(&outshare1s, &s2sketch.0);
             MulState::verify(&outshare1d, &s2sketch.0);
+            match now_d.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             // ======================================================================================
             // Verify triple proof!
             
