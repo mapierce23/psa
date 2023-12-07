@@ -124,15 +124,15 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let now_d = SystemTime::now();
-            let prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
+            let mur prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
             let zero_bytes = [0u8; 16];
-            let rvec = Vec::<FieldElm>::new();
+            let mut rvec = Vec::<FieldElm>::new();
             // Compute inner product 
-            let prod = FieldElm::one();
+            let mut prod = FieldElm::one();
             for i in 0..MAX_GROUP_SIZE {
                 let mut buf = [0u8; 16];
                 prg.fill_bytes(&mut buf);
-                let output = buf.to_vec();
+                let mut output = buf.to_vec();
                 output.extend(zero_bytes.clone());
                 let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
                 rvec.push(FieldElm {value : scalar});
