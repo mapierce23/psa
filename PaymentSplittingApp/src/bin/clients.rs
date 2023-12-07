@@ -188,26 +188,37 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>, print: bool) -> 
     .0;
     // Package data to send to the servers 
     let transact_data1 = TransactionData {
-        tokens: my_tokens.clone(),
         id: count,
         dpf_src: keys_src[0].clone(),
         dpf_dest: keys_dest[0].clone(),
-        g_r1: v1.compress(),
-        r2: r2_1,
-        r3: r3_1,
-        com_i: e1.compress(),
-        triple_proof: transact_pf.clone(),
-        token_proof: token_pf.clone(),
     };
     let transact_data2 = TransactionDataS2 {
         id: count,
         dpf_src: keys_src[1].clone(),
         dpf_dest: keys_dest[1].clone(),
-        g_r1: v1.compress(),
-        r2: r2_2,
-        r3: r3_2,
-        com_i: e1.compress(),
     };
+    // // Package data to send to the servers 
+    // let transact_data1 = TransactionData {
+    //     tokens: my_tokens.clone(),
+    //     id: count,
+    //     dpf_src: keys_src[0].clone(),
+    //     dpf_dest: keys_dest[0].clone(),
+    //     g_r1: v1.compress(),
+    //     r2: r2_1,
+    //     r3: r3_1,
+    //     com_i: e1.compress(),
+    //     triple_proof: transact_pf.clone(),
+    //     token_proof: token_pf.clone(),
+    // };
+    // let transact_data2 = TransactionDataS2 {
+    //     id: count,
+    //     dpf_src: keys_src[1].clone(),
+    //     dpf_dest: keys_dest[1].clone(),
+    //     g_r1: v1.compress(),
+    //     r2: r2_2,
+    //     r3: r3_2,
+    //     com_i: e1.compress(),
+    // };
     (transact_data1, transact_data2)
 }
 
