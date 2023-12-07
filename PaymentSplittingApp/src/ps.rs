@@ -86,6 +86,7 @@ pub struct GpLeaderData {
 // }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TransactionData { 
+	pub id: u32,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
 
