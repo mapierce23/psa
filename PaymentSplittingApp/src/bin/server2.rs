@@ -3,36 +3,37 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 use std::io;
-use std::time::{Duration, SystemTime};
 use std ::net::{TcpListener,TcpStream};
 use std::io::{Read,Write};
 use std::thread;
 use std::sync::Mutex;
-use std::ops::DerefMut;
 use std::ops::Deref;
 use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::ops::DerefMut;
+use hmac::{Hmac, Mac, NewMac};
+use rand_chacha::rand_core::SeedableRng;
+use rand_chacha::rand_core::RngCore;
+use std::convert::TryInto;
 use sha2::Sha256;
 use sha2::Digest;
+use rand_chacha::ChaCha8Rng;
+use rand::thread_rng;
+use rand::Rng;
 use redis::Connection;
 use redis::Commands;
-use redis::RedisResult;
 use curve25519_dalek::ristretto::RistrettoPoint;
-use curve25519_dalek::ristretto::CompressedRistretto;
 use curve25519_dalek::scalar::Scalar;
-
 use payapp::ps::*;
 use payapp::ggm::*;
+use payapp::prg::PrgSeed;
 use payapp::coms::*;
 use payapp::sketch::*;
 use payapp::mpc::*;
-use payapp::prg::PrgSeed;
 use payapp::Group;
-use payapp::u32_to_bits;
 use payapp::FieldElm;
-use payapp::dpf::*;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
-use payapp::DPF_DOMAIN;
 
 // pub const REDIS: &str = "redis://127.0.0.1:6379";
 pub const REDIS: &str = "redis://10.128.0.4:6379";
