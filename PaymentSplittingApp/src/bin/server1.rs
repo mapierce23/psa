@@ -229,8 +229,19 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             else {
                 // Proofs have been verified, now complete transaction
+                let now = SystemTime::now();
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
+                match now_d.elapsed() {
+                    Ok(elapsed) => {
+                        // it prints '2'
+                        println!("{}", elapsed.as_nanos());
+                    }
+                    Err(e) => {
+                        // an error occurred!
+                        println!("Error: {e:?}");
+                    }
+                }
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
