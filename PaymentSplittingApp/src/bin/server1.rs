@@ -112,7 +112,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 Ok(elapsed) => {
                     // it prints '2'
                     sum += elapsed.as_nanos();
-                    println!("{}", elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
@@ -195,7 +194,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 Ok(elapsed) => {
                     // it prints '2'
                     sum += elapsed.as_nanos();
-                    println!("{}", elapsed.as_nanos());
                 }
                 Err(e) => {
                     // an error occurred!
