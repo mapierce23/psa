@@ -110,6 +110,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 }
             }
             // VERIFY DPF SKETCHES
+            let now_d = SystemTime::now();
             let seed = PrgSeed::random();
             let mut sketches = vec![];
             sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
@@ -118,10 +119,19 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
+            match now_d.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             // ===============================================================
             let mut sum = 0;
             let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
-            let now_d = SystemTime::now();
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
@@ -190,16 +200,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
             MulState::verify(&outshare1s, &s2sketch.0);
             MulState::verify(&outshare1d, &s2sketch.0);
-            match now_d.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
             // ======================================================================================
             // Verify triple proof!
             
