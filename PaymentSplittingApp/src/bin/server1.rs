@@ -132,8 +132,9 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             for i in 0..MAX_GROUP_SIZE {
                 let mut buf = [0u8; 16];
                 prg.fill_bytes(&mut buf);
-                buf.extend(zero_bytes.clone());
-                let scalar = Scalar::from_bytes_mod_order(buf.try_into().unwrap());
+                let output = buf.to_vec();
+                output.extend(zero_bytes.clone());
+                let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
                 rvec.push(FieldElm {value : scalar});
                 prod.mul(&w1[i]);
                 prod.mul(&rvec[i]);
