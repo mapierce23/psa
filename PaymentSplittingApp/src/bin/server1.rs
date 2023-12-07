@@ -9,6 +9,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::ops::DerefMut;
 use hmac::{Hmac, Mac, NewMac};
 use rand_chacha::rand_core::SeedableRng;
+use rand_chacha::rand_core::RngCore;
 use sha2::Sha256;
 use sha2::Digest;
 use rand_chacha::ChaCha8Rng;
