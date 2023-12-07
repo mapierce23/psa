@@ -7,6 +7,7 @@ use std::io::{self, Read, Write};
 use crate::io::Error;
 use std::thread;
 use zkp::CompactProof;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 use zkp::ProofError;
 use zkp::Transcript;
 use curve25519_dalek::scalar::Scalar;
@@ -45,6 +46,8 @@ lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
+    pub static ref priv_key = RsaPrivateKey::from_components(BigUint::from(1u32),BigUint::from(1u32),BigUint::from(1u32),).expect("failed to generate a key");
+    pub static ref pub_key = RsaPublicKey::from(&priv_key);
 }
 
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
