@@ -117,31 +117,26 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // let mut rvec = Vec::<FieldElm>::new();
             // Compute inner product 
             let mut prod = FieldElm::one();
-            // for i in 0..MAX_GROUP_SIZE {
-            //     let mut buf = [0u8; 16];
-            //     prg.fill_bytes(&mut buf);
-            //     let mut output = buf.to_vec();
-            //     output.extend(zero_bytes.clone());
-            //     let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
-            //     rvec.push(FieldElm {value : scalar});
-            //     prod.mul(&w1[i]);
-            //     prod.mul(&rvec[i]);
-            // }
+            for i in 0..MAX_GROUP_SIZE {
+                let mut buf = [0u8; 16];
+                prg.fill_bytes(&mut buf);
+                let mut output = buf.to_vec();
+                output.extend(zero_bytes.clone());
+                let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
+                rvec.push(FieldElm {value : scalar});
+                prod.mul(&w1[i]);
+                prod.mul(&rvec[i]);
+            }
             let package = TransactionPackage {
                     strin: "Server1",
+                    gp_val_ver: prod.clone(),
+                    com_x: com_x,
+                    com_ix: com_ix,
+                    g_r2: g_r2,
+                    g_r3: g_r3,
                     cshare_s: corshare1s.clone(),
                     cshare_d: corshare1d.clone(),
                 };
-            // let package = TransactionPackage {
-            //         strin: "Server1",
-            //         gp_val_ver: prod.clone(),
-            //         com_x: com_x,
-            //         com_ix: com_ix,
-            //         g_r2: g_r2,
-            //         g_r3: g_r3,
-            //         cshare_s: corshare1s.clone(),
-            //         cshare_d: corshare1d.clone(),
-            //     };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
             let mut key: Vec<u8> = Vec::new();
@@ -183,20 +178,20 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // ======================================================================================
             // Verify triple proof!
             
-            // let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
-            // let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
-            // let g_r2 = g_r2_1 + g_r2_2;
-            // let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
-            // let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
-            // let g_r3 = g_r3_1 + g_r3_2;
-            // let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
-            // let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
-            // let comx = comx_1 + comx_2;
-            // let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
-            // let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
-            // let comix = comix_1 + comix_2;
-            // let g_r1 = td.g_r1.decompress().expect("REASON");
-            // let com_i = td.com_i.decompress().expect("REASON");
+            let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
+            let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
+            let g_r2 = g_r2_1 + g_r2_2;
+            let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
+            let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
+            let g_r3 = g_r3_1 + g_r3_2;
+            let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
+            let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
+            let comx = comx_1 + comx_2;
+            let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
+            let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
+            let comix = comix_1 + comix_2;
+            let g_r1 = td.g_r1.decompress().expect("REASON");
+            let com_i = td.com_i.decompress().expect("REASON");
             let mut ver = true; // same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
             // let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
             // if res.is_err() {
