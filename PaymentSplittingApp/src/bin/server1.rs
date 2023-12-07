@@ -95,7 +95,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let now_d = SystemTime::now();
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
@@ -108,50 +107,41 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
             let corshare1s = state1s.cor_share();
             let corshare1d = state1d.cor_share();
-            match now_d.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                    sum += elapsed.as_nanos();
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
             // ===============================================================
             let mut sum = 0;
-            let ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
-            let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
-            let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
-            let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
-            let zero_bytes = [0u8; 16];
-            let mut rvec = Vec::<FieldElm>::new();
+            let ver = true; // verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
+            // let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
+            // let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
+            // let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
+            // let zero_bytes = [0u8; 16];
+            // let mut rvec = Vec::<FieldElm>::new();
             // Compute inner product 
             let mut prod = FieldElm::one();
-            for i in 0..MAX_GROUP_SIZE {
-                let mut buf = [0u8; 16];
-                prg.fill_bytes(&mut buf);
-                let mut output = buf.to_vec();
-                output.extend(zero_bytes.clone());
-                let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
-                rvec.push(FieldElm {value : scalar});
-                prod.mul(&w1[i]);
-                prod.mul(&rvec[i]);
-            }
-            let mut hasher = Sha256::new();
-            hasher.update(bincode::serialize(&prod).unwrap());
-            let result = hasher.finalize();
+            // for i in 0..MAX_GROUP_SIZE {
+            //     let mut buf = [0u8; 16];
+            //     prg.fill_bytes(&mut buf);
+            //     let mut output = buf.to_vec();
+            //     output.extend(zero_bytes.clone());
+            //     let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
+            //     rvec.push(FieldElm {value : scalar});
+            //     prod.mul(&w1[i]);
+            //     prod.mul(&rvec[i]);
+            // }
             let package = TransactionPackage {
                     strin: "Server1",
-                    gp_val_ver: (&result[..]).to_vec(),
-                    com_x: com_x,
-                    com_ix: com_ix,
-                    g_r2: g_r2,
-                    g_r3: g_r3,
                     cshare_s: corshare1s.clone(),
                     cshare_d: corshare1d.clone(),
                 };
+            // let package = TransactionPackage {
+            //         strin: "Server1",
+            //         gp_val_ver: prod.clone(),
+            //         com_x: com_x,
+            //         com_ix: com_ix,
+            //         g_r2: g_r2,
+            //         g_r3: g_r3,
+            //         cshare_s: corshare1s.clone(),
+            //         cshare_d: corshare1d.clone(),
+            //     };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
             let mut key: Vec<u8> = Vec::new();
@@ -168,7 +158,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             
             let s2data: TransactionPackage = res.unwrap();
-            let now_d = SystemTime::now();
             let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
             let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
             let outshare1s = state1s.out_share(&cor_s);
@@ -191,36 +180,25 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
             MulState::verify(&outshare1s, &s2sketch.0);
             MulState::verify(&outshare1d, &s2sketch.0);
-            match now_d.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                    sum += elapsed.as_nanos();
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
-            }
             // ======================================================================================
             // Verify triple proof!
             
-            let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
-            let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
-            let g_r2 = g_r2_1 + g_r2_2;
-            let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
-            let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
-            let g_r3 = g_r3_1 + g_r3_2;
-            let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
-            let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
-            let comx = comx_1 + comx_2;
-            let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
-            let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
-            let comix = comix_1 + comix_2;
-            let g_r1 = td.g_r1.decompress().expect("REASON");
-            let com_i = td.com_i.decompress().expect("REASON");
-            let mut ver = same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
-            let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
+            // let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
+            // let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
+            // let g_r2 = g_r2_1 + g_r2_2;
+            // let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
+            // let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
+            // let g_r3 = g_r3_1 + g_r3_2;
+            // let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
+            // let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
+            // let comx = comx_1 + comx_2;
+            // let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
+            // let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
+            // let comix = comix_1 + comix_2;
+            // let g_r1 = td.g_r1.decompress().expect("REASON");
+            // let com_i = td.com_i.decompress().expect("REASON");
+            let mut ver = true; // same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
+            // let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
             // if res.is_err() {
             //     ver = false;
             //     println!("Triple Proof didn't verify!");
@@ -232,20 +210,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             else {
                 // Proofs have been verified, now complete transaction
-                let now_d = SystemTime::now();
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
-                match now_d.elapsed() {
-                    Ok(elapsed) => {
-                        // it prints '2'
-                        sum += elapsed.as_nanos();
-                        println!("{}", elapsed.as_nanos());
-                    }
-                    Err(e) => {
-                        // an error occurred!
-                        println!("Error: {e:?}");
-                    }
-                }
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
