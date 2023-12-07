@@ -380,8 +380,8 @@ fn main() -> io::Result<( )> {
         tdatavec.push((tdata4_1, tdata4_2));     
     }
     
-    let td1 = (tdatavec[i].0).clone();
-    let td2 = (tdatavec[i].1).clone();
+    let td1 = (tdatavec[0].0).clone();
+    let td2 = (tdatavec[0].1).clone();
     send_transaction(&td1, &td2);
     
     let now = SystemTime::now();
