@@ -354,7 +354,7 @@ fn main() -> io::Result<( )> {
 
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
-    let val = false;
+    let mut val = false;
     for i in 0..50 {
         if i == 0 {
             val = true;
