@@ -166,6 +166,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 bin = con.get(key.clone()).unwrap();
                 res = bincode::deserialize(&bin);
             }
+            let now_d = SystemTime::now();
             let s2data: TransactionPackage = res.unwrap();
             let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
             let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
@@ -189,6 +190,16 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
             MulState::verify(&outshare1s, &s2sketch.0);
             MulState::verify(&outshare1d, &s2sketch.0);
+            match now_d.elapsed() {
+                Ok(elapsed) => {
+                    // it prints '2'
+                    println!("{}", elapsed.as_nanos());
+                }
+                Err(e) => {
+                    // an error occurred!
+                    println!("Error: {e:?}");
+                }
+            }
             // ======================================================================================
             // Verify triple proof!
             
@@ -206,7 +217,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let comix = comix_1 + comix_2;
             let g_r1 = td.g_r1.decompress().expect("REASON");
             let com_i = td.com_i.decompress().expect("REASON");
-            let now_d = SystemTime::now();
             let mut ver = same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
             let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
             // if res.is_err() {
@@ -222,16 +232,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 // Proofs have been verified, now complete transaction
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
-            }
-            match now_d.elapsed() {
-                Ok(elapsed) => {
-                    // it prints '2'
-                    println!("{}", elapsed.as_nanos());
-                }
-                Err(e) => {
-                    // an error occurred!
-                    println!("Error: {e:?}");
-                }
             }
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
