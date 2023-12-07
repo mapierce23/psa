@@ -96,6 +96,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // DATA: TransactionData struct
         if buf[0] == 4 {
             let now_d = SystemTime::now();
+            let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // VERIFY DPF SKETCHES
@@ -110,6 +111,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now_d.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
+                    sum += elapsed.as_nanos();
                     println!("{}", elapsed.as_nanos());
                 }
                 Err(e) => {
@@ -192,6 +194,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             match now_d.elapsed() {
                 Ok(elapsed) => {
                     // it prints '2'
+                    sum += elapsed.as_nanos();
                     println!("{}", elapsed.as_nanos());
                 }
                 Err(e) => {
@@ -229,13 +232,14 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             else {
                 // Proofs have been verified, now complete transaction
-                let now = SystemTime::now();
+                let now_d = SystemTime::now();
                 let mut guard = database.lock().unwrap();
                 ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
                 match now_d.elapsed() {
                     Ok(elapsed) => {
                         // it prints '2'
-                        println!("{}", elapsed.as_nanos());
+                        sum += elapsed.as_nanos();
+                        println!("{}", sum);
                     }
                     Err(e) => {
                         // an error occurred!
