@@ -371,7 +371,7 @@ fn main() -> io::Result<( )> {
     
     
     let now = SystemTime::now();
-    for i in 1..TRIALS {
+    for i in 0..TRIALS {
         let td1 = (tdatavec[i].0).clone();
         let td2 = (tdatavec[i].1).clone();
         send_transaction(&td1, &td2);
