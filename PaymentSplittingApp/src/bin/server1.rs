@@ -125,6 +125,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let now_d = SystemTime::now();
             let prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
+            let zero_bytes = [0u8; 16];
             let rvec = Vec::<FieldElm>::new();
             // Compute inner product 
             let prod = FieldElm::one();
