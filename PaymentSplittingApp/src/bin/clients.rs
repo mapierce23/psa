@@ -39,7 +39,7 @@ use payapp::SETTLE_DOMAIN;
 //pub const SERVER2: &str = "127.0.0.1:7879";
 pub const SERVER1: &str = "10.138.0.2:7878";
 pub const SERVER2: &str = "10.128.0.4:7879";
-pub const TRIALS: usize = 1;
+pub const TRIALS: usize = 50;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
@@ -100,7 +100,8 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     Ok(tokens)
 }
 
-fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionData, TransactionDataS2) {
+fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>, print: bool) -> (TransactionData, TransactionDataS2) {
+    let now = SystemTime::now();
     let mut my_tokens = Vec::<GroupToken>::new();
     for j in 0..tokens.len() {
         my_tokens.push(tokens[j].token.clone());
@@ -207,6 +208,18 @@ fn prepare_transaction(start: u32, tokens: Vec<GroupTokenPriv>) -> (TransactionD
         r3: r3_2,
         com_i: e1.compress(),
     };
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            if print {
+                println!("Prepare {}",elapsed.as_nanos());
+            }
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
     (transact_data1, transact_data2)
 }
 
@@ -357,16 +370,20 @@ fn main() -> io::Result<( )> {
     let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
     for i in 0..50 {
-        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone());
-        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone());
-        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone());
-        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone());
+        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), true);
+        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
+        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
+        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
         tdatavec.push((tdata1_1, tdata1_2));
         tdatavec.push((tdata2_1, tdata2_2));
         tdatavec.push((tdata3_1, tdata3_2));
         tdatavec.push((tdata4_1, tdata4_2));     
     }
-
+    
+    let td1 = (tdatavec[i].0).clone();
+    let td2 = (tdatavec[i].1).clone();
+    send_transaction(&td1, &td2);
+    
     let now = SystemTime::now();
     for i in 0..TRIALS {
         let td1 = (tdatavec[i].0).clone();
@@ -382,7 +399,7 @@ fn main() -> io::Result<( )> {
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
-            println!("Latency {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+            println!("Latency {}", 50 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
         }
         Err(e) => {
             // an error occurred!
