@@ -71,25 +71,18 @@ pub struct GpLeaderData {
 	gp_size: usize,
 }
 
-// #[derive(Serialize, Deserialize, Clone)]
-// pub struct TransactionData { 
-// 	pub tokens: Vec<GroupToken>,
-// 	pub id: u32,
-// 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
-// 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
-// 	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
-// 	pub r2: Scalar,           // Share of randomness to calculate commitment to x
-// 	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
-// 	pub com_i: CompressedRistretto, 
-// 	pub triple_proof: CompactProof,
-// 	pub token_proof: CompactProof,
-// }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TransactionData { 
+	pub tokens: Vec<GroupToken>,
 	pub id: u32,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
-
+	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
+	pub r2: Scalar,           // Share of randomness to calculate commitment to x
+	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
+	pub com_i: CompressedRistretto, 
+	pub triple_proof: CompactProof,
+	pub token_proof: CompactProof,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -97,17 +90,11 @@ pub struct TransactionDataS2 {
 	pub id: u32,
 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
+	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
+	pub r2: Scalar,           // Share of randomness to calculate commitment to x
+	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
+	pub com_i: CompressedRistretto, 
 }
-// #[derive(Serialize, Deserialize, Clone)]
-// pub struct TransactionDataS2 { 
-// 	pub id: u32,
-// 	pub dpf_src: SketchDPFKey<FieldElm, FieldElm>,
-// 	pub dpf_dest: SketchDPFKey<FieldElm, FieldElm>,
-// 	pub g_r1: CompressedRistretto, // r1 is the randomness used to create com_a
-// 	pub r2: Scalar,           // Share of randomness to calculate commitment to x
-// 	pub r3: Scalar,           // Share of randomness to calculate commitment to i * x
-// 	pub com_i: CompressedRistretto, 
-// }
 
 #[derive(Serialize, Deserialize)]
 pub struct SettleData {
