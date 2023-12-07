@@ -33,13 +33,6 @@ use crate::MAX_GROUP_SIZE;
 use crate::MAX_GROUP_NUM;
 use crate::DPF_DOMAIN;
 
-
-// Write pseudocode or definitions after this
-// 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
-// sign up for 992
-// LEFT TO DO: CODE
-// - Transaction ID protocol
-
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
