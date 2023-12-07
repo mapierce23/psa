@@ -10,6 +10,7 @@ use std::ops::DerefMut;
 use hmac::{Hmac, Mac, NewMac};
 use sha2::Sha256;
 use sha2::Digest;
+use rand_chacha::ChaCha8Rng;
 use rand::thread_rng;
 use rand::Rng;
 use redis::Connection;
