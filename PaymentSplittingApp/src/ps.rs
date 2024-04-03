@@ -113,15 +113,6 @@ pub struct TransactionPackage<'a> {
     pub cshare_d: CorShare<FieldElm>,
 }
 
-                strin: "Server2", 
-                gp_val_ver: prod.clone(),
-                com_x: com_x,
-                com_ix: com_ix,
-                g_r2: g_r2,
-                g_r3: g_r3,
-                cshare_s: corshare2s.clone(),
-                cshare_d: corshare2d.clone(),
-
 impl ServerData {
 
 	pub fn new(issuer: Issuer) -> ServerData {
