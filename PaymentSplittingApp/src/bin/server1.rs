@@ -36,7 +36,7 @@ pub const REDIS: &str = "redis://127.0.0.1:6379";
 
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
-    // let mut server_data = ServerData::new(issuer);
+    let mut server_data = ServerData::new(issuer);
     // let con_try = redis_connect();
     // let mut con: Connection = con_try.unwrap();
 
