@@ -65,11 +65,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             (*key_guard).remove(MAX_GROUP_NUM - 1);
             (*key_guard).insert(group_num, decoded.0);
 
-            // // SEND S2 ITS PRF KEY
-            // let mut key: Vec<u8> = Vec::new();
-            // key.extend([2u8, 1u8]); // SERVER ID, TYPE
-            // key.extend(group_num.to_be_bytes()); 
-            // let _ : () = con.set(key.clone(), decoded.1).unwrap();
+            // SEND S2 ITS PRF KEY
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([2u8, 1u8]); // SERVER ID, TYPE
+            key.extend(group_num.to_be_bytes()); 
+            let _ : () = con.set(key.clone(), decoded.1).unwrap();
 
             let (aids, pubkey) = server_data.setup_new_group(guard.deref());
             let encoded = bincode::serialize(&(aids, pubkey)).unwrap();
