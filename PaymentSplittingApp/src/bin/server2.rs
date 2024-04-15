@@ -36,8 +36,8 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 
-pub const REDIS: &str = "redis://127.0.0.1:6379";
-// pub const REDIS: &str = "redis://10.128.0.4:6379";
+// pub const REDIS: &str = "redis://127.0.0.1:6379";
+pub const REDIS: &str = "redis://10.128.0.4:6379";
 
 fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>) -> io::Result<()> {
 
