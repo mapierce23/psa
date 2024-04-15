@@ -53,6 +53,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: NEW GROUP REQUEST
         // Data: PRF Keys
         if buf[0] == 1 {
+            println!("new group request");
             let mut guard = counter.lock().unwrap();
             let index = guard.deref();
             let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
