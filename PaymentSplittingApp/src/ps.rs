@@ -105,10 +105,10 @@ pub struct SettleData {
 #[derive(Serialize, Deserialize)]
 pub struct TransactionPackage<'a> {
 	pub strin: &'a str,
-	com_x: CompressedRistretto,
-	com_ix: CompressedRistretto,
-	g_r2: CompressedRistretto,
-	g_r3: CompressedRistretto,
+	pub com_x: CompressedRistretto,
+	pub com_ix: CompressedRistretto,
+	pub g_r2: CompressedRistretto,
+	pub g_r3: CompressedRistretto,
     pub cshare_s: CorShare<FieldElm>,
     pub cshare_d: CorShare<FieldElm>,
 }

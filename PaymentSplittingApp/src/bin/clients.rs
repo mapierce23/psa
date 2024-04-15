@@ -36,18 +36,18 @@ use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
 use payapp::SETTLE_DOMAIN;
 
-//pub const SERVER1: &str = "127.0.0.1:7878";
-//pub const SERVER2: &str = "127.0.0.1:7879";
-pub const SERVER1: &str = "10.138.0.2:7878";
-pub const SERVER2: &str = "10.128.0.4:7879";
+pub const SERVER1: &str = "127.0.0.1:7878";
+pub const SERVER2: &str = "127.0.0.1:7879";
+// pub const SERVER1: &str = "10.138.0.2:7878";
+// pub const SERVER2: &str = "10.128.0.4:7879";
 pub const TRIALS: usize = 50;
 
 lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
-    pub static ref priv_key = RsaPrivateKey::from_components(BigUint::from(1u32),BigUint::from(1u32),BigUint::from(1u32),).expect("failed to generate a key");
-    pub static ref pub_key = RsaPublicKey::from(&priv_key);
+    // pub static ref priv_key = RsaPrivateKey::from_components(BigUint::from(1u32),BigUint::from(1u32),BigUint::from(1u32),).expect("failed to generate a key");
+    // pub static ref pub_key = RsaPublicKey::from(&priv_key);
 }
 
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
@@ -78,7 +78,7 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     // The credential is the registration token. Each group member submits their
     // reg token to the server in exchange for a group token.
     let mut tokens = Vec::<GroupTokenPriv>::new();
-    for i in 0..6{  
+    for i in 0..6 {  
         let now = SystemTime::now();  
         let (z3, showmsg) = show_blind345_5::show(&creds[i], &pubkey);
         let mut encoded: Vec<u8> = Vec::new();
@@ -385,6 +385,9 @@ fn main() -> io::Result<( )> {
     for handle in thread_vec {
         handle.join().unwrap();
     }
+
+    settle(priv_tokens1[2].clone(), 1);
+    
     match now.elapsed() {
         Ok(elapsed) => {
             // it prints '2'
