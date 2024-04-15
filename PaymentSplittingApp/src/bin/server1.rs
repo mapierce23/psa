@@ -37,8 +37,8 @@ pub const REDIS: &str = "redis://127.0.0.1:6379";
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
     let mut server_data = ServerData::new(issuer);
-    // let con_try = redis_connect();
-    // let mut con: Connection = con_try.unwrap();
+    let con_try = redis_connect();
+    let mut con: Connection = con_try.unwrap();
 
     for _ in 0..1000 {
 
@@ -73,174 +73,174 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let _ = stream.write(&encoded);
             *guard += MAX_GROUP_SIZE;
         }
-        // // TYPE: SETUP REGISTRATION TOKENS
-        // // DATA: Vector of Credential Requests
-        // if buf[0] == 2 {
-        //     let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-        //     let reg_tokens = server_data.setup_reg_tokens(decoded);
-        //     let encoded = bincode::serialize(&reg_tokens).unwrap();
-        //     println!("{:?}", encoded.len());
-        //     let _ = stream.write(&encoded);
-        // }
+        // TYPE: SETUP REGISTRATION TOKENS
+        // DATA: Vector of Credential Requests
+        if buf[0] == 2 {
+            let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let reg_tokens = server_data.setup_reg_tokens(decoded);
+            let encoded = bincode::serialize(&reg_tokens).unwrap();
+            println!("{:?}", encoded.len());
+            let _ = stream.write(&encoded);
+        }
 
-        // // TYPE: USER REGISTRATION
-        // // DATA: Show Message
-        // if buf[0] == 3 {
-        //     let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-        //     let group_token = server_data.register_user(decoded, &mac).unwrap();
-        //     let encoded = bincode::serialize(&group_token).unwrap();
-        //     let _ = stream.write(&encoded);
-        // }
+        // TYPE: USER REGISTRATION
+        // DATA: Show Message
+        if buf[0] == 3 {
+            let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let group_token = server_data.register_user(decoded, &mac).unwrap();
+            let encoded = bincode::serialize(&group_token).unwrap();
+            let _ = stream.write(&encoded);
+        }
 
-        // // TYPE: TRANSACTION
-        // // DATA: TransactionData struct
-        // if buf[0] == 4 {
-        // 	println!("transaction time");
-        //     let mut sum = 0;
-        //     let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-        //     let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
-        //     // VERIFY DPF SKETCHES
-        //     let seed = PrgSeed::random();
-        //     let mut sketches = vec![];
-        //     sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
-        //     sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
-        //     let state1s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &(&td.dpf_src).val_share, &(&td.dpf_src).val2_share, &sketches[0]);
-        //     let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
-        //     let corshare1s = state1s.cor_share();
-        //     let corshare1d = state1d.cor_share();
-        //     // ===============================================================
-        //     let mut sum = 0;
-        //     let ver = true; 
-        //     // verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
-        //     let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
-        //     let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
-        //     let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
-        //     let zero_bytes = [0u8; 16];
-        //     let mut rvec = Vec::<FieldElm>::new();
-        //     // Compute inner product 
-        //     let mut prod = FieldElm::one();
-        //     for i in 0..MAX_GROUP_SIZE {
-        //         let mut buf = [0u8; 16];
-        //         prg.fill_bytes(&mut buf);
-        //         let mut output = buf.to_vec();
-        //         output.extend(zero_bytes.clone());
-        //         let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
-        //         rvec.push(FieldElm {value : scalar});
-        //         prod.mul(&w1[i]);
-        //         prod.mul(&rvec[i]);
-        //     }
-        //     let package = TransactionPackage {
-        //             strin: "Server1",
-        //             com_x: com_x,
-        //             com_ix: com_ix,
-        //             g_r2: g_r2,
-        //             g_r3: g_r3,
-        //             cshare_s: corshare1s.clone(),
-        //             cshare_d: corshare1d.clone(),
-        //         };
-        //     let mut encoded: Vec<u8> = Vec::new();
-        //     encoded.extend(bincode::serialize(&package).unwrap());
-        //     let mut key: Vec<u8> = Vec::new();
-        //     key.extend([1u8, 2u8]); // SERVER ID, TYPE
-        //     key.extend(td.id.to_be_bytes());
-        //     let _ : () = con.set(key.clone(), encoded).unwrap();
-        //     // WAIT for response
-        //     key[0] = 2u8;
-        //     let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
-        //     let mut res = bincode::deserialize(&bin);
-        //     while res.is_err() {
-        //         bin = con.get(key.clone()).unwrap();
-        //         res = bincode::deserialize(&bin);
-        //     }
+        // TYPE: TRANSACTION
+        // DATA: TransactionData struct
+        if buf[0] == 4 {
+        	println!("transaction time");
+            let mut sum = 0;
+            let td: TransactionData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
+            // VERIFY DPF SKETCHES
+            let seed = PrgSeed::random();
+            let mut sketches = vec![];
+            sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
+            sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
+            let state1s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &(&td.dpf_src).val_share, &(&td.dpf_src).val2_share, &sketches[0]);
+            let state1d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
+            let corshare1s = state1s.cor_share();
+            let corshare1d = state1d.cor_share();
+            // ===============================================================
+            let mut sum = 0;
+            let ver = true; 
+            // verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
+            let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
+            let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
+            let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
+            let zero_bytes = [0u8; 16];
+            let mut rvec = Vec::<FieldElm>::new();
+            // Compute inner product 
+            let mut prod = FieldElm::one();
+            for i in 0..MAX_GROUP_SIZE {
+                let mut buf = [0u8; 16];
+                prg.fill_bytes(&mut buf);
+                let mut output = buf.to_vec();
+                output.extend(zero_bytes.clone());
+                let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
+                rvec.push(FieldElm {value : scalar});
+                prod.mul(&w1[i]);
+                prod.mul(&rvec[i]);
+            }
+            let package = TransactionPackage {
+                    strin: "Server1",
+                    com_x: com_x,
+                    com_ix: com_ix,
+                    g_r2: g_r2,
+                    g_r3: g_r3,
+                    cshare_s: corshare1s.clone(),
+                    cshare_d: corshare1d.clone(),
+                };
+            let mut encoded: Vec<u8> = Vec::new();
+            encoded.extend(bincode::serialize(&package).unwrap());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([1u8, 2u8]); // SERVER ID, TYPE
+            key.extend(td.id.to_be_bytes());
+            let _ : () = con.set(key.clone(), encoded).unwrap();
+            // WAIT for response
+            key[0] = 2u8;
+            let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
             
-        //     let s2data: TransactionPackage = res.unwrap();
-        //     let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
-        //     let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
-        //     let outshare1s = state1s.out_share(&cor_s);
-        //     let outshare1d = state1d.out_share(&cor_d);
-        //     // ======================================================================================
-        //     let mut encoded: Vec<u8> = Vec::new();
-        //     encoded.extend(bincode::serialize(&(outshare1s.clone(), outshare1d.clone())).unwrap());
-        //     let mut key: Vec<u8> = Vec::new();
-        //     key.extend([1u8, 3u8]); // SERVER ID, TYPE
-        //     key.extend(td.id.to_be_bytes());
-        //     let _ : () = con.set(key.clone(), encoded).unwrap();
-        //     // WAIT for response
-        //     key[0] = 2u8;
-        //     let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
-        //     let mut res = bincode::deserialize(&bin);
-        //     while res.is_err() {
-        //         bin = con.get(key.clone()).unwrap();
-        //         res = bincode::deserialize(&bin);
-        //     }
-        //     let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
-        //     MulState::verify(&outshare1s, &s2sketch.0);
-        //     MulState::verify(&outshare1d, &s2sketch.0);
-        //     // ======================================================================================
-        //     // Verify triple proof!
+            let s2data: TransactionPackage = res.unwrap();
+            let cor_s = MulState::cor(&corshare1s, &(s2data.cshare_s));
+            let cor_d = MulState::cor(&corshare1d, &(s2data.cshare_d));
+            let outshare1s = state1s.out_share(&cor_s);
+            let outshare1d = state1d.out_share(&cor_d);
+            // ======================================================================================
+            let mut encoded: Vec<u8> = Vec::new();
+            encoded.extend(bincode::serialize(&(outshare1s.clone(), outshare1d.clone())).unwrap());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([1u8, 3u8]); // SERVER ID, TYPE
+            key.extend(td.id.to_be_bytes());
+            let _ : () = con.set(key.clone(), encoded).unwrap();
+            // WAIT for response
+            key[0] = 2u8;
+            let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
+            let s2sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
+            MulState::verify(&outshare1s, &s2sketch.0);
+            MulState::verify(&outshare1d, &s2sketch.0);
+            // ======================================================================================
+            // Verify triple proof!
             
-        //     let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
-        //     let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
-        //     let g_r2 = g_r2_1 + g_r2_2;
-        //     let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
-        //     let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
-        //     let g_r3 = g_r3_1 + g_r3_2;
-        //     let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
-        //     let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
-        //     let comx = comx_1 + comx_2;
-        //     let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
-        //     let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
-        //     let comix = comix_1 + comix_2;
-        //     let g_r1 = td.g_r1.decompress().expect("REASON");
-        //     let com_i = td.com_i.decompress().expect("REASON");
-        //     let mut ver = true; // same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
-        //     // let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
-        //     // if res.is_err() {
-        //     //     ver = false;
-        //     //     println!("Triple Proof didn't verify!");
-        //     // }
-        //     let mut success = String::from("Transaction Processed");
-        //     if ver != true {
-        //         println!("Invalid!");
-        //         success = String::from("Invalid Transaction");
-        //     }
-        //     else {
-        //         // Proofs have been verified, now complete transaction
-        //         let mut guard = database.lock().unwrap();
-        //         ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
-        //     }
-        //     let encoded = bincode::serialize(&success).unwrap();
-        //     let _ = stream.write(&encoded);
-        // }
-        // // TYPE: SETTLING
-        // // DATA: Settle Request
-        // if buf[0] == 5 {
-        //     let settle_data: SettleData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
-        //     // ENCRYPT THE DATABASE, SEND TO S2
-        //     let guard = database.lock().unwrap();
-        //     let key_guard = prf_keys.lock().unwrap();
-        //     let enc_db1 = ServerData::encrypt_db(guard.deref(), key_guard.deref(), settle_data.r_seed);
-        //     drop(guard);
-        //     // NOW PUBLISH ENCRYPTED DATABASE VECTOR
-        //     let encoded = bincode::serialize(&enc_db1).unwrap();
-        //     println!("{:?}", encoded.len());
-        //     let mut key: Vec<u8> = Vec::new();
-        //     key.extend([1u8, 4u8]); // SERVER ID, TYPE
-        //     let _ : () = con.set(key.clone(), encoded).unwrap();
-        //     // AWAIT ENCRYPTED DATABASE VECTOR FROM S2
-        //     key[0] = 2u8;
-        //     let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
-        //     let mut res = bincode::deserialize(&bin);
-        //     while res.is_err() {
-        //         bin = con.get(key.clone()).unwrap();
-        //         res = bincode::deserialize(&bin);
-        //     }
+            let g_r2_1: RistrettoPoint = g_r2.decompress().expect("REASON");
+            let g_r2_2: RistrettoPoint = s2data.g_r2.decompress().expect("REASON");
+            let g_r2 = g_r2_1 + g_r2_2;
+            let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
+            let g_r3_2: RistrettoPoint = s2data.g_r3.decompress().expect("REASON");
+            let g_r3 = g_r3_1 + g_r3_2;
+            let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
+            let comx_2: RistrettoPoint = s2data.com_x.decompress().expect("REASON");
+            let comx = comx_1 + comx_2;
+            let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
+            let comix_2: RistrettoPoint = s2data.com_ix.decompress().expect("REASON");
+            let comix = comix_1 + comix_2;
+            let g_r1 = td.g_r1.decompress().expect("REASON");
+            let com_i = td.com_i.decompress().expect("REASON");
+            let mut ver = true; // same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
+            // let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
+            // if res.is_err() {
+            //     ver = false;
+            //     println!("Triple Proof didn't verify!");
+            // }
+            let mut success = String::from("Transaction Processed");
+            if ver != true {
+                println!("Invalid!");
+                success = String::from("Invalid Transaction");
+            }
+            else {
+                // Proofs have been verified, now complete transaction
+                let mut guard = database.lock().unwrap();
+                ServerData::transact(guard.deref_mut(), &eval_all_src, &eval_all_dest);
+            }
+            let encoded = bincode::serialize(&success).unwrap();
+            let _ = stream.write(&encoded);
+        }
+        // TYPE: SETTLING
+        // DATA: Settle Request
+        if buf[0] == 5 {
+            let settle_data: SettleData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            // ENCRYPT THE DATABASE, SEND TO S2
+            let guard = database.lock().unwrap();
+            let key_guard = prf_keys.lock().unwrap();
+            let enc_db1 = ServerData::encrypt_db(guard.deref(), key_guard.deref(), settle_data.r_seed);
+            drop(guard);
+            // NOW PUBLISH ENCRYPTED DATABASE VECTOR
+            let encoded = bincode::serialize(&enc_db1).unwrap();
+            println!("{:?}", encoded.len());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([1u8, 4u8]); // SERVER ID, TYPE
+            let _ : () = con.set(key.clone(), encoded).unwrap();
+            // AWAIT ENCRYPTED DATABASE VECTOR FROM S2
+            key[0] = 2u8;
+            let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
             
-        //     let s2enc_db: Vec<FieldElm> = res.unwrap();
-        //     let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
-        //     let encoded = bincode::serialize(&balance_vec1).unwrap();
-        //     let _ = stream.write(&encoded);
-        // }
+            let s2enc_db: Vec<FieldElm> = res.unwrap();
+            let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
+            let encoded = bincode::serialize(&balance_vec1).unwrap();
+            let _ = stream.write(&encoded);
+        }
         // And you can sleep this connection with the connected sender
         thread::sleep(Duration::from_secs(1));  
     }
