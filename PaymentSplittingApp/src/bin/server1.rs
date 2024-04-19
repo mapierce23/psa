@@ -59,7 +59,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let mut guard = counter.lock().unwrap();
             let index = guard.deref();
             let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
-            let decoded: (Vec<u8>, Vec<u8>) = bincode::deserialize(&buf1[1..bytes_read]).unwrap();
+            let decoded: (Vec<u8>, Vec<u8>) = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             // RECORD THIS SERVER'S PRF KEY
             let mut key_guard = prf_keys.lock().unwrap();
             (*key_guard).remove(MAX_GROUP_NUM - 1);
@@ -82,7 +82,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let bytes_read = 2648;
             let mut buf1 = [0;2648];
             stream.read_exact(&mut buf1)?;
-            let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[1..bytes_read]).unwrap();
+            let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
             println!("{:?}", encoded.len());
@@ -95,7 +95,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let bytes_read = 264;
             let mut buf1 = [0;264];
             stream.read_exact(&mut buf1)?;
-            let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf1[1..bytes_read]).unwrap();
+            let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let group_token = server_data.register_user(decoded, &mac).unwrap();
             let encoded = bincode::serialize(&group_token).unwrap();
             let _ = stream.write(&encoded);
@@ -229,7 +229,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let bytes_read = 264;
             let mut buf1 = [0;264];
             stream.read_exact(&mut buf1)?;
-            let settle_data: SettleData = bincode::deserialize(&buf[1..bytes_read]).unwrap();
+            let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S2
             let guard = database.lock().unwrap();
             let key_guard = prf_keys.lock().unwrap();
