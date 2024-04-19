@@ -82,8 +82,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: SETUP REGISTRATION TOKENS
         // DATA: Vector of Credential Requests
         if buf[0] == 2 {
-            let bytes_read = 13208;
-            let mut buf1 = [0;13208];
+            let bytes_read = 26416;
+            let mut buf1 = [0;26416];
             let res = stream.read_exact(&mut buf1);
             if !res.is_ok() {
                 println!("uh oh!");
@@ -91,7 +91,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
-            // println!("sending back... {:?}", encoded.len());
+            println!("sending back... {:?}", encoded.len());
             let _ = stream.write(&encoded);
         }
 
