@@ -91,7 +91,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
-            println("sending back... {:?}", encoded.len());
+            println!("sending back... {:?}", encoded.len());
             let _ = stream.write(&encoded);
         }
 
