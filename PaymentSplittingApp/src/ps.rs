@@ -248,12 +248,9 @@ impl GpLeaderData {
 		encoded.push(2u8);
 		encoded.extend(bincode::serialize(&reqs).unwrap());
 		let _ = stream.write(&encoded);
-		let mut buf = [0;40196];
-		let mut bytes_read = 0;
-		while bytes_read == 0 {
-			bytes_read = stream.read(&mut buf)?;
-		}
-		println!("{:?}", bytes_read);
+		let mut buf = [0;3928];
+		let mut bytes_read = 3928;
+		stream.read_exact(&mut buf)?;
 		let resps: Vec<issue_blind124_5::CredentialResponse> = bincode::deserialize(&buf[0..bytes_read]).unwrap(); 
 		
 		// Once we get the Credential Responses:

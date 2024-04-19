@@ -36,10 +36,10 @@ use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
 use payapp::SETTLE_DOMAIN;
 
-pub const SERVER1: &str = "127.0.0.1:7878";
-pub const SERVER2: &str = "127.0.0.1:7879";
-// pub const SERVER1: &str = "10.138.0.2:7878";
-// pub const SERVER2: &str = "10.128.0.4:7879";
+// pub const SERVER1: &str = "127.0.0.1:7878";
+// pub const SERVER2: &str = "127.0.0.1:7879";
+pub const SERVER1: &str = "35.197.55.229:7878";
+pub const SERVER2: &str = "34.173.21.162:7879";
 pub const TRIALS: usize = 50;
 
 lazy_static! {
@@ -74,6 +74,15 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     }
     let (aids, pubkey): (Vec<u64>, IssuerPubKey) = bincode::deserialize(&buf[0..bytes_read]).unwrap();
     let creds = leader.group_setup(aids, &stream1, pubkey.clone())?;
+    match now.elapsed() {
+        Ok(elapsed) => {
+            println!("Setup Time: {:?}", (elapsed.as_nanos() as f64) / (1000000000 as f64));
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
 
     // The credential is the registration token. Each group member submits their
     // reg token to the server in exchange for a group token.
@@ -322,83 +331,59 @@ fn main() -> io::Result<( )> {
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
     client2.push(priv_tokens1[2].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[4].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[4].clone());
-    client2.push(priv_tokens1[2].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[4].clone());
-    client2.push(priv_tokens1[3].clone());
-    client2.push(priv_tokens1[4].clone());
+
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
     client3.push(priv_tokens1[2].clone());
-    client3.push(priv_tokens1[3].clone());
-    client3.push(priv_tokens1[4].clone());
-    client3.push(priv_tokens1[3].clone());
-    client3.push(priv_tokens1[4].clone());
-    client3.push(priv_tokens1[2].clone());
-    client3.push(priv_tokens1[3].clone());
-    client3.push(priv_tokens1[4].clone());
-    client3.push(priv_tokens1[3].clone());
-    client3.push(priv_tokens1[4].clone());
+
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
     client4.push(priv_tokens1[2].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
-    client4.push(priv_tokens1[2].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
-    client4.push(priv_tokens1[3].clone());
-    client4.push(priv_tokens1[4].clone());
 
-    let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
-    let mut val = false;
-    for i in 0..50 {
-        if i == 0 {
-            val = true;
-        }
-        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), val);
-        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
-        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
-        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
-        tdatavec.push((tdata1_1, tdata1_2));
-        tdatavec.push((tdata2_1, tdata2_2));
-        tdatavec.push((tdata3_1, tdata3_2));
-        tdatavec.push((tdata4_1, tdata4_2));     
-    }
+    // let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
+
+    // let mut val = false;
+    // for i in 0..50 {
+    //     if i == 0 {
+    //         val = true;
+    //     }
+    //     let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), val);
+    //     let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
+    //     let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
+    //     let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
+    //     tdatavec.push((tdata1_1, tdata1_2));
+    //     tdatavec.push((tdata2_1, tdata2_2));
+    //     tdatavec.push((tdata3_1, tdata3_2));
+    //     tdatavec.push((tdata4_1, tdata4_2));     
+    // }
     
     
-    let now = SystemTime::now();
-    for i in 0..TRIALS {
-        let td1 = (tdatavec[i].0).clone();
-        let td2 = (tdatavec[i].1).clone();
-        let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
-        thread_vec.push(handle);
-    }
+    // let now = SystemTime::now();
+    // for i in 0..TRIALS {
+    //     let td1 = (tdatavec[i].0).clone();
+    //     let td2 = (tdatavec[i].1).clone();
+    //     let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
+    //     thread_vec.push(handle);
+    // }
 
-    for handle in thread_vec {
-        handle.join().unwrap();
-    }
+    // for handle in thread_vec {
+    //     handle.join().unwrap();
+    // }
 
-    settle(priv_tokens1[2].clone(), 1);
+    // settle(priv_tokens1[2].clone(), 1);
     
-    match now.elapsed() {
-        Ok(elapsed) => {
-            // it prints '2'
-            println!("Thruput {}", 50 as f64 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
-            println!("Total time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-        }
-        Err(e) => {
-            // an error occurred!
-            println!("Error: {e:?}");
-        }
-    }
+    // match now.elapsed() {
+    //     Ok(elapsed) => {
+    //         // it prints '2'
+    //         println!("Thruput {}", 50 as f64 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
+    //         println!("Total time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+    //     }
+    //     Err(e) => {
+    //         // an error occurred!
+    //         println!("Error: {e:?}");
+    //     }
+    // }
 
     // =========================================================================
     Ok(())
