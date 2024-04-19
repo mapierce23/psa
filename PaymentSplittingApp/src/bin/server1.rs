@@ -82,8 +82,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: SETUP REGISTRATION TOKENS
         // DATA: Vector of Credential Requests
         if buf[0] == 2 {
-            let bytes_read = 2648;
-            let mut buf1 = [0;2648];
+            let bytes_read = 3968;
+            let mut buf1 = [0;3968];
             let res = stream.read_exact(&mut buf1);
             if !res.is_ok() {
                 println!("uh oh!");
