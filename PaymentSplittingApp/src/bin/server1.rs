@@ -111,8 +111,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // DATA: TransactionData struct
         if buf[0] == 4 {
         	let bytes_read = 4048;
-            let mut buf1 = [0;4048];
-            stream.read_exact(&mut buf1)?;
+            let mut buf1 = vec![0;4048];
+            stream.read_to_end(&mut buf1)?;
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
