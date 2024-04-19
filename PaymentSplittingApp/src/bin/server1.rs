@@ -45,7 +45,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;1];
         match stream.read_exact(&mut buf) {
-              Err(e) => println!("its on line 48 an error: {:?}", e), //<= error handling
+              Err(e) => continue,
               Ok(_) => println!("func was OK"),
         }
 
