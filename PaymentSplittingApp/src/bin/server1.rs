@@ -46,7 +46,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         let mut buf = [0;1];
         match stream.read_exact(&mut buf) {
               Err(e) => continue,
-              Ok(_) => ,
         }
 
         // if bytes_read == 0 {
