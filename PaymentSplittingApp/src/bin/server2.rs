@@ -47,10 +47,9 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
     for _ in 0..1000 {
 
         // Remaining bytes is the type of request & the request itself
-        let mut buf = [0;40192];
-        let bytes_read = stream.read(&mut buf)?;
-
-        if bytes_read == 0 {
+        let mut buf = [0;1];
+        let res = stream.read_exact(&mut buf);
+        if !res.is_ok() {
             continue;
         }
 
@@ -58,7 +57,10 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let res = bincode::deserialize(&buf[1..bytes_read]);
+            let bytes_read = 2344;
+            let mut buf1 = vec![0;2344];
+            stream.read_exact(&mut buf1)?;
+            let res = bincode::deserialize(&buf1[0..bytes_read]);
             if res.is_err() {
                 let success = String::from("skipping");
                 let encoded = bincode::serialize(&success).unwrap();
