@@ -84,13 +84,14 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 2 {
             let bytes_read = 2648;
             let mut buf1 = [0;2648];
-            let res = stream.read_exact(&mut buf);
-            if !res.is_ok() {
-                println!("uh oh!");
+            match stream.read_exact(&mut buf1) {
+                  Err(e) => println!("an error: {:?}", e), //<= error handling
+                  Ok(_) => println!("func was OK"),
             }
             let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
+            println!("{:?}", encoded.len());
             let _ = stream.write(&encoded);
         }
 
