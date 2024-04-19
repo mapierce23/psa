@@ -58,11 +58,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 1 {
             let bytes_read = 48;
             let mut buf1 = [0;48];
-            // stream.read_exact(&mut buf1)?;
-            match stream.read_exact(&mut buf1) {
-                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
-                  Ok(_) => println!("func was OK"),
-            }
+            stream.read_exact(&mut buf1)?;
             let mut guard = counter.lock().unwrap();
             let index = guard.deref();
             let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
@@ -104,10 +100,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 3 {
             let bytes_read = 264;
             let mut buf1 = [0;264];
-            match stream.read_exact(&mut buf1) {
-                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
-                  Ok(_) => println!("func was OK"),
-            }
+            stream.read_exact(&mut buf1)?;
             let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let group_token = server_data.register_user(decoded, &mac).unwrap();
             let encoded = bincode::serialize(&group_token).unwrap();
@@ -119,10 +112,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 4 {
         	let bytes_read = 4048;
             let mut buf1 = [0;4048];
-            match stream.read_exact(&mut buf1) {
-                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
-                  Ok(_) => println!("func was OK"),
-            }
+            stream.read_exact(&mut buf1)?;
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
