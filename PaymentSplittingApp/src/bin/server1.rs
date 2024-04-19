@@ -55,7 +55,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 1 {
             let bytes_read = 48;
             let mut buf1 = [0;48];
-            stream.read_exact(&mut buf1)?;
+            // stream.read_exact(&mut buf1)?;
+            match stream.read_exact(&mut buf1) {
+                  Err(e) => println!("an error: {:?}", e), //<= error handling
+                  Ok(_) => println!("func was OK"),
+            }
             let mut guard = counter.lock().unwrap();
             let index = guard.deref();
             let group_num = (*index) / MAX_GROUP_SIZE; // GROUP NUM
