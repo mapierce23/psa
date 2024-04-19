@@ -57,7 +57,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let mut buf1 = [0;48];
             // stream.read_exact(&mut buf1)?;
             match stream.read_exact(&mut buf1) {
-                  Err(e) => println!("an error: {:?}", e), //<= error handling
+                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
                   Ok(_) => println!("func was OK"),
             }
             let mut guard = counter.lock().unwrap();
@@ -85,7 +85,10 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 2 {
             let bytes_read = 2648;
             let mut buf1 = [0;2648];
-            stream.read_exact(&mut buf1)?;
+            match stream.read_exact(&mut buf1) {
+                  Err(e) => println!("an error: {:?}", e), //<= error handling
+                  Ok(_) => println!("func was OK"),
+            }
             let decoded: Vec<issue_blind124_5::CredentialRequest> = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
@@ -98,7 +101,10 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 3 {
             let bytes_read = 264;
             let mut buf1 = [0;264];
-            stream.read_exact(&mut buf1)?;
+            match stream.read_exact(&mut buf1) {
+                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
+                  Ok(_) => println!("func was OK"),
+            }
             let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let group_token = server_data.register_user(decoded, &mac).unwrap();
             let encoded = bincode::serialize(&group_token).unwrap();
@@ -110,7 +116,10 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         if buf[0] == 4 {
         	let bytes_read = 4048;
             let mut buf1 = [0;4048];
-            stream.read_exact(&mut buf1)?;
+            match stream.read_exact(&mut buf1) {
+                  Err(e) => println!("an error: {:?}", bytes_read), //<= error handling
+                  Ok(_) => println!("func was OK"),
+            }
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[1..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
