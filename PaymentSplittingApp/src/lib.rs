@@ -19,8 +19,8 @@ pub use crate::field::FieldElm;
 pub const MAX_GROUP_SIZE: usize = 10;
 pub const MAX_GROUP_NUM: usize = 100;
 pub const DPF_DOMAIN: usize = 11; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_DOMAIN: usize = 5; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_SIZE: usize = 176;
+pub const SETTLE_DOMAIN: usize = 8; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_SIZE: usize = 233;
 
 // Additive group, such as (Z_n, +)
 pub trait Group {
