@@ -244,7 +244,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             drop(guard);
             // NOW PUBLISH ENCRYPTED DATABASE VECTOR
             let encoded = bincode::serialize(&enc_db1).unwrap();
-            println!("{:?}", encoded.len());
+            // println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 4u8]); // SERVER ID, TYPE
             let _ : () = con.set(key.clone(), encoded).unwrap();
