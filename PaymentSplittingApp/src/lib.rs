@@ -16,11 +16,11 @@ extern crate lazy_static;
 pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
-pub const MAX_GROUP_SIZE: usize = 20;
-pub const MAX_GROUP_NUM: usize = 6550;
-pub const DPF_DOMAIN: usize = 18; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_DOMAIN: usize = 14; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_SIZE: usize = 347;
+pub const MAX_GROUP_SIZE: usize = 30;
+pub const MAX_GROUP_NUM: usize = 34;
+pub const DPF_DOMAIN: usize = 11; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_DOMAIN: usize = 7; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_SIZE: usize = 214;
 
 // Additive group, such as (Z_n, +)
 pub trait Group {
