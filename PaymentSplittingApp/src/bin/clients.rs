@@ -89,7 +89,6 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     let mut tokens = Vec::<GroupTokenPriv>::new();
     let now = SystemTime::now(); 
     for i in 0..1 {   
-        stream1.set_nonblocking(true).expect("set_nonblocking call failed");
         let now = SystemTime::now(); 
         let (z3, showmsg) = show_blind345_5::show(&creds[i], &pubkey);
         match now.elapsed() {

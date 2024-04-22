@@ -108,7 +108,6 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
-            println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 2u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());
@@ -133,7 +132,6 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             // ======================================================================================
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&(outshare2s.clone(), outshare2d.clone())).unwrap());
-            println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 3u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());

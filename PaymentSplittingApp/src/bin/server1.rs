@@ -77,15 +77,14 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 
             let (aids, pubkey) = server_data.setup_new_group(guard.deref());
             let encoded = bincode::serialize(&(aids, pubkey)).unwrap();
-            println!("{:?}", encoded.len());
             let _ = stream.write(&encoded);
             *guard += MAX_GROUP_SIZE;
         }
         // TYPE: SETUP REGISTRATION TOKENS
         // DATA: Vector of Credential Requests
         if buf[0] == 2 {
-            let bytes_read = 7928;
-            let mut buf1 = [0;7928];
+            let bytes_read = 2648;
+            let mut buf1 = [0;2648];
             let res = stream.read_exact(&mut buf1);
             if !res.is_ok() {
                 println!("uh oh!");
@@ -94,7 +93,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
             let _ = stream.write(&encoded);
-            let _ = stream.flush();
         }
 
         // TYPE: USER REGISTRATION
@@ -123,8 +121,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let bytes_read = 3096;
-            let mut buf1 = vec![0;3096];
+            let bytes_read = 2824;
+            let mut buf1 = vec![0;2824];
             stream.read_exact(&mut buf1)?;
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
