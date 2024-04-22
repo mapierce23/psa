@@ -236,7 +236,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let bytes_read = 366;
             let mut buf1 = [0;366];
             stream.read_exact(&mut buf1)?;
-            let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+            let settle_data: SettleData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S2
             let guard = database.lock().unwrap();
             let key_guard = prf_keys.lock().unwrap();
