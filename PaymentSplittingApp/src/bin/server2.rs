@@ -35,6 +35,7 @@ use payapp::Group;
 use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
+use payapp::SETTLE_SIZE;
 
 pub const REDIS: &str = "redis://127.0.0.1:6379";
 // pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -107,6 +108,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             };
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&package).unwrap());
+            println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 2u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());
@@ -131,6 +133,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             // ======================================================================================
             let mut encoded: Vec<u8> = Vec::new();
             encoded.extend(bincode::serialize(&(outshare2s.clone(), outshare2d.clone())).unwrap());
+            println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([2u8, 3u8]); // SERVER ID, TYPE
             key.extend(td.id.to_be_bytes());
@@ -184,10 +187,10 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: SETTLING
         // DATA: Settle Request
         if buf[0] == 5 {
-            let bytes_read = 290;
-            let mut buf1 = vec![0;290];
+            let bytes_read = SETTLE_SIZE;
+            let mut buf1 = vec![0;SETTLE_SIZE];
             stream.read_exact(&mut buf1)?;
-            let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+            let settle_data: SettleData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S1
             let mut guard = database.lock().unwrap();
             let mut key_arr = Vec::<Vec<u8>>::new();

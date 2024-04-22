@@ -30,6 +30,7 @@ use payapp::Group;
 use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
+use payapp::SETTLE_SIZE;
 
 pub const REDIS: &str = "redis://127.0.0.1:6379";
 // pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -76,14 +77,15 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 
             let (aids, pubkey) = server_data.setup_new_group(guard.deref());
             let encoded = bincode::serialize(&(aids, pubkey)).unwrap();
+            println!("{:?}", encoded.len());
             let _ = stream.write(&encoded);
             *guard += MAX_GROUP_SIZE;
         }
         // TYPE: SETUP REGISTRATION TOKENS
         // DATA: Vector of Credential Requests
         if buf[0] == 2 {
-            let bytes_read = 2648;
-            let mut buf1 = [0;2648];
+            let bytes_read = 7928;
+            let mut buf1 = [0;7928];
             let res = stream.read_exact(&mut buf1);
             if !res.is_ok() {
                 println!("uh oh!");
@@ -121,8 +123,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let bytes_read = 2824;
-            let mut buf1 = vec![0;2824];
+            let bytes_read = 3096;
+            let mut buf1 = vec![0;3096];
             stream.read_exact(&mut buf1)?;
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
@@ -243,10 +245,10 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: SETTLING
         // DATA: Settle Request
         if buf[0] == 5 {
-            let bytes_read = 290;
-            let mut buf1 = [0;290];
+            let bytes_read = SETTLE_SIZE;
+            let mut buf1 = [0;SETTLE_SIZE];
             stream.read_exact(&mut buf1)?;
-            let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+            let settle_data: SettleData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S2
             let guard = database.lock().unwrap();
             let key_guard = prf_keys.lock().unwrap();
@@ -254,7 +256,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             drop(guard);
             // NOW PUBLISH ENCRYPTED DATABASE VECTOR
             let encoded = bincode::serialize(&enc_db1).unwrap();
-            println!("{:?}", encoded.len());
+            // println!("{:?}", encoded.len());
             let mut key: Vec<u8> = Vec::new();
             key.extend([1u8, 4u8]); // SERVER ID, TYPE
             let _ : () = con.set(key.clone(), encoded).unwrap();
