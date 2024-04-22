@@ -98,7 +98,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: USER REGISTRATION
         // DATA: Show Message
         if buf[0] == 3 {
-        	let now = SystemTime::now(); 
             let bytes_read = 264;
             let mut buf1 = [0;264];
             stream.read_exact(&mut buf1)?;
@@ -106,16 +105,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let group_token = server_data.register_user(decoded, &mac).unwrap();
             let encoded = bincode::serialize(&group_token).unwrap();
             let _ = stream.write_all(&encoded);
-            match now.elapsed() {
-            Ok(elapsed) => {
-                // it prints '2'
-                println!("Reg time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-            }
-            Err(e) => {
-                // an error occurred!
-                println!("Error: {e:?}");
-            }
-        }
         }
 
         // TYPE: TRANSACTION
