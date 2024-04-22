@@ -77,7 +77,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 
             let (aids, pubkey) = server_data.setup_new_group(guard.deref());
             let encoded = bincode::serialize(&(aids, pubkey)).unwrap();
-            println!("{:?}", encoded.len());
+            //println!("{:?}", encoded.len());
             let _ = stream.write(&encoded);
             *guard += MAX_GROUP_SIZE;
         }
