@@ -184,8 +184,8 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: SETTLING
         // DATA: Settle Request
         if buf[0] == 5 {
-            let bytes_read = 309;
-            let mut buf1 = vec![0;309];
+            let bytes_read = 366;
+            let mut buf1 = vec![0;366];
             stream.read_exact(&mut buf1)?;
             let settle_data: SettleData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S1
