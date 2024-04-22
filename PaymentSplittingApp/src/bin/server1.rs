@@ -110,8 +110,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let bytes_read = 3248;
-            let mut buf1 = vec![0;3248];
+            let bytes_read = 3134;
+            let mut buf1 = vec![0;3134];
             stream.read_exact(&mut buf1)?;
             // println!("Transaction, bytes read: {:?}", bytes_read);
             let mut sum = 0;
