@@ -17,10 +17,10 @@ pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
 pub const MAX_GROUP_SIZE: usize = 20;
-pub const MAX_GROUP_NUM: usize = 100;
-pub const DPF_DOMAIN: usize = 12; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_DOMAIN: usize = 8; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_SIZE: usize = 233;
+pub const MAX_GROUP_NUM: usize = 800;
+pub const DPF_DOMAIN: usize = 15; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_DOMAIN: usize = 14; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_SIZE: usize = 347;
 
 // Additive group, such as (Z_n, +)
 pub trait Group {
