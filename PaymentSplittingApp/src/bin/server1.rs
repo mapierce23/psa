@@ -32,8 +32,8 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::SETTLE_SIZE;
 
-pub const REDIS: &str = "redis://127.0.0.1:6379";
-// pub const REDIS: &str = "redis://10.128.0.4:6379";
+// pub const REDIS: &str = "redis://127.0.0.1:6379";
+pub const REDIS: &str = "redis://10.128.0.4:6379";
 
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
