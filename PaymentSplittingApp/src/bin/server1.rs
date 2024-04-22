@@ -31,8 +31,8 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 
-// pub const REDIS: &str = "redis://127.0.0.1:6379";
-pub const REDIS: &str = "redis://10.128.0.4:6379";
+pub const REDIS: &str = "redis://127.0.0.1:6379";
+// pub const REDIS: &str = "redis://10.128.0.4:6379";
 
 fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>, prf_keys: Arc<Mutex<Vec<Vec<u8>>>>, mac: &Hmac<Sha256>, streams: &u32) -> io::Result<()> {
 
@@ -92,18 +92,30 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let reg_tokens = server_data.setup_reg_tokens(decoded);
             let encoded = bincode::serialize(&reg_tokens).unwrap();
             let _ = stream.write(&encoded);
+            let _ = stream.flush();
         }
 
         // TYPE: USER REGISTRATION
         // DATA: Show Message
         if buf[0] == 3 {
+        	let now = SystemTime::now(); 
             let bytes_read = 264;
             let mut buf1 = [0;264];
             stream.read_exact(&mut buf1)?;
             let decoded: show_blind345_5::ShowMessage = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let group_token = server_data.register_user(decoded, &mac).unwrap();
             let encoded = bincode::serialize(&group_token).unwrap();
-            let _ = stream.write(&encoded);
+            let _ = stream.write_all(&encoded);
+            match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("Reg time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
+        }
         }
 
         // TYPE: TRANSACTION
@@ -112,7 +124,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let bytes_read = 2824;
             let mut buf1 = vec![0;2824];
             stream.read_exact(&mut buf1)?;
-            println!("Transaction, bytes read: {:?}", bytes_read);
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
@@ -232,8 +243,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: SETTLING
         // DATA: Settle Request
         if buf[0] == 5 {
-            let bytes_read = 264;
-            let mut buf1 = [0;264];
+            let bytes_read = 290;
+            let mut buf1 = [0;290];
             stream.read_exact(&mut buf1)?;
             let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S2
@@ -262,7 +273,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let _ = stream.write(&encoded);
         }
         // And you can sleep this connection with the connected sender
-        thread::sleep(Duration::from_secs(1));  
+        // thread::sleep(Duration::from_secs(1));  
     }
     Ok(())
 }

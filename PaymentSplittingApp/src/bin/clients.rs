@@ -36,10 +36,10 @@ use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
 use payapp::SETTLE_DOMAIN;
 
-// pub const SERVER1: &str = "127.0.0.1:7878";
-// pub const SERVER2: &str = "127.0.0.1:7879";
-pub const SERVER1: &str = "35.197.55.229:7878";
-pub const SERVER2: &str = "34.173.21.162:7879";
+pub const SERVER1: &str = "127.0.0.1:7878";
+pub const SERVER2: &str = "127.0.0.1:7879";
+// pub const SERVER1: &str = "35.197.55.229:7878";
+// pub const SERVER2: &str = "34.173.21.162:7879";
 pub const TRIALS: usize = 50;
 
 lazy_static! {
@@ -87,19 +87,43 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     // The credential is the registration token. Each group member submits their
     // reg token to the server in exchange for a group token.
     let mut tokens = Vec::<GroupTokenPriv>::new();
-    for i in 0..6 {  
-        let now = SystemTime::now();  
+    let now = SystemTime::now(); 
+    for i in 0..1 {   
+        stream1.set_nonblocking(true).expect("set_nonblocking call failed");
+        let now = SystemTime::now(); 
         let (z3, showmsg) = show_blind345_5::show(&creds[i], &pubkey);
+        match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("Reg time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
+        }
         let mut encoded: Vec<u8> = Vec::new();
         encoded.push(3u8);
         encoded.extend(bincode::serialize(&showmsg).unwrap());
         stream1.write(&encoded).expect("failed to write");
-        let mut buf = [0;40192];
-        let mut bytes_read = 0;
-        while bytes_read == 0 {
-            bytes_read = stream1.read(&mut buf)?;
+        let now = SystemTime::now();
+        let mut buf = [0;136];
+        let mut bytes_read = 136;
+        let mut res = stream1.read_exact(&mut buf);
+        while !res.is_ok() {
+            res = stream1.read_exact(&mut buf);
         }
-        let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
+        match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("Reg time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
+        }
+        let now = SystemTime::now();
         let group_token: GroupToken = bincode::deserialize(&buf[0..bytes_read]).unwrap();
         let priv_token = GroupTokenPriv {
             prf_keys: prf_keys.clone(),
@@ -108,6 +132,16 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
             aid: creds[i].m[3],
         };
         tokens.push(priv_token.clone());
+        match now.elapsed() {
+            Ok(elapsed) => {
+                // it prints '2'
+                println!("Reg time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+            }
+            Err(e) => {
+                // an error occurred!
+                println!("Error: {e:?}");
+            }
+        }
     }
     Ok(tokens)
 }
@@ -326,64 +360,64 @@ fn main() -> io::Result<( )> {
     // let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
     let mut client1 = Vec::<GroupTokenPriv>::new();
-    client1.push(priv_tokens1[2].clone());
+    client1.push(priv_tokens1[0].clone());
 
 
     let mut client2 = Vec::<GroupTokenPriv>::new();
-    client2.push(priv_tokens1[2].clone());
+    client2.push(priv_tokens1[0].clone());
 
 
     let mut client3 = Vec::<GroupTokenPriv>::new();
-    client3.push(priv_tokens1[2].clone());
+    client3.push(priv_tokens1[0].clone());
 
 
     let mut client4 = Vec::<GroupTokenPriv>::new();
-    client4.push(priv_tokens1[2].clone());
+    client4.push(priv_tokens1[0].clone());
 
 
-    // let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
+    let mut tdatavec = Vec::<(TransactionData, TransactionDataS2)>::new();
 
-    // let mut val = false;
-    // for i in 0..50 {
-    //     if i == 0 {
-    //         val = true;
-    //     }
-    //     let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), val);
-    //     let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
-    //     let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
-    //     let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
-    //     tdatavec.push((tdata1_1, tdata1_2));
-    //     tdatavec.push((tdata2_1, tdata2_2));
-    //     tdatavec.push((tdata3_1, tdata3_2));
-    //     tdatavec.push((tdata4_1, tdata4_2));     
-    // }
+    let mut val = false;
+    for i in 0..50 {
+        if i == 0 {
+            val = true;
+        }
+        let (tdata1_1, tdata1_2) = prepare_transaction(i, client1.clone(), val);
+        let (tdata2_1, tdata2_2) = prepare_transaction(i + 50, client2.clone(), false);
+        let (tdata3_1, tdata3_2) = prepare_transaction(i + 100, client3.clone(), false);
+        let (tdata4_1, tdata4_2) = prepare_transaction(i + 150, client4.clone(), false);
+        tdatavec.push((tdata1_1, tdata1_2));
+        tdatavec.push((tdata2_1, tdata2_2));
+        tdatavec.push((tdata3_1, tdata3_2));
+        tdatavec.push((tdata4_1, tdata4_2));     
+    }
     
     
-    // let now = SystemTime::now();
-    // for i in 0..TRIALS {
-    //     let td1 = (tdatavec[i].0).clone();
-    //     let td2 = (tdatavec[i].1).clone();
-    //     let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
-    //     thread_vec.push(handle);
-    // }
+    let now = SystemTime::now();
+    for i in 0..TRIALS {
+        let td1 = (tdatavec[i].0).clone();
+        let td2 = (tdatavec[i].1).clone();
+        let handle = thread::spawn(move || {send_transaction(&td1, &td2)});
+        thread_vec.push(handle);
+    }
 
-    // for handle in thread_vec {
-    //     handle.join().unwrap();
-    // }
+    for handle in thread_vec {
+        handle.join().unwrap();
+    }
 
-    // settle(priv_tokens1[2].clone(), 1);
+    // settle(priv_tokens1[0].clone(), 1);
     
-    // match now.elapsed() {
-    //     Ok(elapsed) => {
-    //         // it prints '2'
-    //         println!("Thruput {}", 50 as f64 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
-    //         println!("Total time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
-    //     }
-    //     Err(e) => {
-    //         // an error occurred!
-    //         println!("Error: {e:?}");
-    //     }
-    // }
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            println!("Thruput {}", 50 as f64 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
+            println!("Total time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
+        }
+        Err(e) => {
+            // an error occurred!
+            println!("Error: {e:?}");
+        }
+    }
 
     // =========================================================================
     Ok(())

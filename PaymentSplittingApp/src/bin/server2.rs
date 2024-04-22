@@ -36,8 +36,8 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 
-// pub const REDIS: &str = "redis://127.0.0.1:6379";
-pub const REDIS: &str = "redis://10.128.0.4:6379";
+pub const REDIS: &str = "redis://127.0.0.1:6379";
+// pub const REDIS: &str = "redis://10.128.0.4:6379";
 
 fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Arc<Mutex<Vec<FieldElm>>>) -> io::Result<()> {
 
@@ -184,8 +184,8 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         // TYPE: SETTLING
         // DATA: Settle Request
         if buf[0] == 5 {
-            let bytes_read = 2344;
-            let mut buf1 = vec![0;2344];
+            let bytes_read = 290;
+            let mut buf1 = vec![0;290];
             stream.read_exact(&mut buf1)?;
             let settle_data: SettleData = bincode::deserialize(&buf[0..bytes_read]).unwrap();
             // ENCRYPT THE DATABASE, SEND TO S1
@@ -234,7 +234,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
         }
 
         // And you can sleep this connection with the connected sender
-        thread::sleep(Duration::from_secs(1));  
+        // thread::sleep(Duration::from_secs(1));  
     }
     Ok(())
 }
