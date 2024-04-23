@@ -45,7 +45,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
 
     let con_try = redis_connect();
     let mut con: Connection = con_try.unwrap();
-    let mut bool notHandled = true;
+    let mut notHandled = true;
 
     while notHandled {
 
