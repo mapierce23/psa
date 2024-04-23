@@ -218,7 +218,6 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
             if res.is_err() {
                 ver = false;
-                println!("Triple Proof didn't verify!");
             }
             let mut success = String::from("Transaction Processed");
             if ver != true {
