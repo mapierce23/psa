@@ -18,7 +18,7 @@ pub use crate::field::FieldElm;
 
 pub const MAX_GROUP_SIZE: usize = 10;
 pub const MAX_GROUP_NUM: usize = 200;
-pub const DPF_DOMAIN: usize = 14; // 9 = 2^8 = 256 // about 60 AES evals
+pub const DPF_DOMAIN: usize = 12; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_DOMAIN: usize = 8; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_SIZE: usize = 233;
 pub const CRED_REQUEST_1: usize = 2648; 
