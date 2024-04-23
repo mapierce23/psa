@@ -32,6 +32,7 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::SETTLE_SIZE;
 use payapp::CRED_REQUEST_1;
+use payapp::TRANSACT_REQ_1;
 
 // pub const REDIS: &str = "redis://127.0.0.1:6379";
 pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -111,8 +112,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: TRANSACTION
         // DATA: TransactionData struct
         if buf[0] == 4 {
-            let bytes_read = 2824;
-            let mut buf1 = vec![0;2824];
+            let bytes_read = TRANSACT_REQ_1;
+            let mut buf1 = vec![0;TRANSACT_REQ_1];
             stream.read_exact(&mut buf1)?;
             let mut sum = 0;
             let td: TransactionData = bincode::deserialize(&buf1[0..bytes_read]).unwrap();
