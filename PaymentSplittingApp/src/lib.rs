@@ -22,8 +22,8 @@ pub const DPF_DOMAIN: usize = 10; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_DOMAIN: usize = 8; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_SIZE: usize = 233;
 pub const CRED_REQUEST_1: usize = 2648; 
-pub const TRANSACT_REQ_1: usize = 2824 + 38 * -1;
-pub const TRANSACT_REQ_2: usize = 2344 + 38 * -1;
+pub const TRANSACT_REQ_1: usize = 2824 - 38 * 1;
+pub const TRANSACT_REQ_2: usize = 2344 - 38 * 1;
 
 
 // Additive group, such as (Z_n, +)
