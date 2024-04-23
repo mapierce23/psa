@@ -21,6 +21,9 @@ pub const MAX_GROUP_NUM: usize = 100;
 pub const DPF_DOMAIN: usize = 11; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_DOMAIN: usize = 15; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_SIZE: usize = 366;
+pub const CRED_REQUEST_1: usize = 2648;
+pub const CRED_REQUEST_2: usize = 3928;
+
 
 // Additive group, such as (Z_n, +)
 pub trait Group {
