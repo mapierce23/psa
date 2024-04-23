@@ -16,12 +16,12 @@ extern crate lazy_static;
 pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
-pub const MAX_GROUP_SIZE: usize = 50;
+pub const MAX_GROUP_SIZE: usize = 100;
 pub const MAX_GROUP_NUM: usize = 100;
 pub const DPF_DOMAIN: usize = 11; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_DOMAIN: usize = 15; // 9 = 2^8 = 256 // about 60 AES evals
 pub const SETTLE_SIZE: usize = 366;
-pub const CRED_REQUEST_1: usize = 13208; 
+pub const CRED_REQUEST_1: usize = 26409; 
 pub const TRANSACT_REQ_1: usize = 2824;
 pub const TRANSACT_REQ_2: usize = 2344;
 
