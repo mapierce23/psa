@@ -31,6 +31,7 @@ use payapp::FieldElm;
 use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::SETTLE_SIZE;
+use payapp::CRED_REQUEST_1;
 
 // pub const REDIS: &str = "redis://127.0.0.1:6379";
 pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -83,8 +84,8 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
         // TYPE: SETUP REGISTRATION TOKENS
         // DATA: Vector of Credential Requests
         if buf[0] == 2 {
-            let bytes_read = 2648;
-            let mut buf1 = [0;2648];
+            let bytes_read = CRED_REQUEST_1;
+            let mut buf1 = [0;CRED_REQUEST_1];
             let res = stream.read_exact(&mut buf1);
             if !res.is_ok() {
                 println!("uh oh!");
