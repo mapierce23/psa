@@ -262,7 +262,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
                 res = bincode::deserialize(&bin);
             }
             
-            // let s2enc_db: Vec<FieldElm> = res.unwrap();
+            let s2enc_db: Vec<FieldElm> = res.unwrap();
             // let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
             // let encoded = bincode::serialize(&balance_vec1).unwrap();
             // let _ = stream.write(&encoded);
