@@ -261,6 +261,9 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             }
             
             let s2enc_db: Vec<FieldElm> = res.unwrap();
+            let success = String::from("yay!");
+            let encoded = bincode::serialize(&success).unwrap();
+            let _ = stream.write(&encoded);
             // let balance_vec1 = ServerData::settle(&enc_db1, &s2enc_db, &settle_data.dpf_key);
             // let encoded = bincode::serialize(&balance_vec1).unwrap();
             // let _ = stream.write(&encoded);
