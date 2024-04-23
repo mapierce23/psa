@@ -47,7 +47,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
     let mut con: Connection = con_try.unwrap();
     let mut notHandled = true;
 
-    while notHandled {
+    for _i in 0..1000 {
 
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;1];
