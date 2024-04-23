@@ -17,10 +17,10 @@ pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
 
 pub const MAX_GROUP_SIZE: usize = 10;
-pub const MAX_GROUP_NUM: usize = 1600;
+pub const MAX_GROUP_NUM: usize = 200;
 pub const DPF_DOMAIN: usize = 12; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_DOMAIN: usize = 12; // 9 = 2^8 = 256 // about 60 AES evals
-pub const SETTLE_SIZE: usize = 309;
+pub const SETTLE_DOMAIN: usize = 9; // 9 = 2^8 = 256 // about 60 AES evals
+pub const SETTLE_SIZE: usize = 252;
 pub const CRED_REQUEST_1: usize = 2648; 
 pub const TRANSACT_REQ_1: usize = 2824 + 38;
 pub const TRANSACT_REQ_2: usize = 2344 + 38;
