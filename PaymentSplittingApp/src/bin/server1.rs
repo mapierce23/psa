@@ -41,15 +41,18 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
 
     let mut server_data = ServerData::new(issuer);
     let con_try = redis_connect();
-    let mut con: Connection = con_try.unwrap();
+    let mut bool notHandled = true;
 
-    for _ in 0..1 {
+    while notHandled {
 
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;1];
         let res = stream.read_exact(&mut buf);
         if !res.is_ok() {
             continue;
+        }
+        if res.is_ok() {
+        	notHandled = true;
         }
 
         // if bytes_read == 0 {
