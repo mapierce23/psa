@@ -130,6 +130,9 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             // ===============================================================
             let mut sum = 0;
             let mut ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
+            if ver == false {
+                println!("uh oh!");
+            }
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
