@@ -129,8 +129,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let corshare1d = state1d.cor_share();
             // ===============================================================
             let mut sum = 0;
-            let ver = true; 
-            // verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
+            let mut ver = verify_group_tokens(td.token_proof, td.tokens, td.com_i, &mac);
             let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
             let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, true);
             let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
@@ -213,11 +212,11 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
             let g_r1 = td.g_r1.decompress().expect("REASON");
             let com_i = td.com_i.decompress().expect("REASON");
             let mut ver = true; // same_group_val_verify(&result[..].to_vec(), &(s2data.gp_val_ver));
-            // let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
-            // if res.is_err() {
-            //     ver = false;
-            //     println!("Triple Proof didn't verify!");
-            // }
+            let res = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof);
+            if res.is_err() {
+                ver = false;
+                println!("Triple Proof didn't verify!");
+            }
             let mut success = String::from("Transaction Processed");
             if ver != true {
                 println!("Invalid!");
