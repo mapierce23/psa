@@ -43,7 +43,7 @@ fn handle_client(mut stream: TcpStream, issuer: Issuer, counter: Arc<Mutex<usize
     let con_try = redis_connect();
     let mut con: Connection = con_try.unwrap();
 
-    for _ in 0..1000 {
+    for _ in 0..1 {
 
         // Remaining bytes is the type of request & the request itself
         let mut buf = [0;1];
