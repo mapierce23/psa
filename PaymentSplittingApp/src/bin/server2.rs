@@ -7,6 +7,7 @@ use std ::net::{TcpListener,TcpStream};
 use std::io::{Read,Write};
 use std::thread;
 use std::sync::Mutex;
+use rsa::{RsaPrivateKey, RsaPublicKey, Oaep, sha2::Sha256};
 use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -37,6 +38,8 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::SETTLE_SIZE;
 use payapp::TRANSACT_REQ_2;
+use payapp::PUB_KEY;
+use payapp::PRIV_KEY;
 
 // pub const REDIS: &str = "redis://127.0.0.1:6379";
 pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -76,102 +79,83 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             let td: TransactionDataS2 = res.unwrap();
             let (sketch_src, sketch_dest, eval_all_src, eval_all_dest) = eval_all(&td.dpf_src, &td.dpf_dest);
             // // ============================ VERIFY DPF SKETCHES =======================================
-            // let seed = PrgSeed::random();
-            // let mut sketches = vec![];
-            // sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
-            // sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
-            // let state2s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &(&td.dpf_src).val_share, &(&td.dpf_src).val2_share, &sketches[0]);
-            // let state2d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
-            // let corshare2s = state2s.cor_share();
-            // let corshare2d = state2d.cor_share();
+            let seed = PrgSeed::random();
+            let mut sketches = vec![];
+            sketches.push((&td.dpf_src).sketch_at(&sketch_src, &mut seed.to_rng()));
+            sketches.push((&td.dpf_dest).sketch_at(&sketch_dest, &mut seed.to_rng()));
+            let state2s = MulState::new(false, (&td.dpf_src).triples.clone(), &(&td.dpf_src).mac_key, &(&td.dpf_src).mac_key2, &(&td.dpf_src).val_share, &(&td.dpf_src).val2_share, &sketches[0]);
+            let state2d = MulState::new(false, (&td.dpf_dest).triples.clone(), &(&td.dpf_dest).mac_key, &(&td.dpf_dest).mac_key2, &(&td.dpf_dest).val_share, &(&td.dpf_dest).val2_share, &sketches[1]);
+            let corshare2s = state2s.cor_share();
+            let corshare2d = state2d.cor_share();
             // // ===========================================================================
-            // let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
-            // let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, false);
-            // let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
-            // let zero_bytes = [0u8; 16];
-            // let mut rvec = Vec::<FieldElm>::new();
-            // // Compute inner product 
-            // let mut prod = FieldElm::one();
-            // for i in 0..MAX_GROUP_SIZE {
-            //     let mut buf = [0u8; 16];
-            //     prg.fill_bytes(&mut buf);
-            //     let mut output = buf.to_vec();
-            //     output.extend(zero_bytes.clone());
-            //     let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
-            //     rvec.push(FieldElm {value : scalar});
-            //     prod.mul(&w1[i]);
-            //     prod.mul(&rvec[i]);
-            // }
-            // let package = TransactionPackage {
-            //     strin: "Server2", 
-            //     com_x: com_x,
-            //     com_ix: com_ix,
-            //     g_r2: g_r2,
-            //     g_r3: g_r3,
-            //     cshare_s: corshare2s.clone(),
-            //     cshare_d: corshare2d.clone(),
-            // };
-            // let mut encoded: Vec<u8> = Vec::new();
-            // encoded.extend(bincode::serialize(&package).unwrap());
-            // let mut key: Vec<u8> = Vec::new();
-            // key.extend([2u8, 2u8]); // SERVER ID, TYPE
-            // key.extend(td.id.to_be_bytes());
-            // let _ : () = con.set(key.clone(), encoded).unwrap();
+            let (com_x, com_ix, g_r2, g_r3) = compute_coms_from_dpf(&eval_all_src, td.r2, td.r3); // Four Ristrettos (compressed)
+            let w1 = same_group_val_compute(&eval_all_src, &eval_all_dest, false);
+            let mut prg: ChaCha8Rng = ChaCha8Rng::seed_from_u64((td.id as u64) + 56789u64);
+            let zero_bytes = [0u8; 16];
+            let mut rvec = Vec::<FieldElm>::new();
+            // Compute inner product 
+            let mut prod = FieldElm::one();
+            for i in 0..MAX_GROUP_SIZE {
+                let mut buf = [0u8; 16];
+                prg.fill_bytes(&mut buf);
+                let mut output = buf.to_vec();
+                output.extend(zero_bytes.clone());
+                let scalar = Scalar::from_bytes_mod_order(output.try_into().unwrap());
+                rvec.push(FieldElm {value : scalar});
+                prod.mul(&w1[i]);
+                prod.mul(&rvec[i]);
+            }
+            let package = TransactionPackage {
+                strin: "Server2", 
+                com_x: com_x,
+                com_ix: com_ix,
+                g_r2: g_r2,
+                g_r3: g_r3,
+                cshare_s: corshare2s.clone(),
+                cshare_d: corshare2d.clone(),
+            };
+            let mut encoded: Vec<u8> = Vec::new();
+            encoded.extend(bincode::serialize(&package).unwrap());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([2u8, 2u8]); // SERVER ID, TYPE
+            key.extend(td.id.to_be_bytes());
+            let _ : () = con.set(key.clone(), encoded).unwrap();
             // // WAIT for response
-            // key[0] = 1u8;
-            // let mut res = con.get(key.clone());
-            // while res.is_err() {
-            //     res = con.get(key.clone());
-            // }
-            // let mut bin: Vec<u8> = res.unwrap();
-            // let mut res = bincode::deserialize(&bin);
-            // while res.is_err() {
-            //     bin = con.get(key.clone()).unwrap();
-            //     res = bincode::deserialize(&bin);
-            // }
-            // let s1data: TransactionPackage = res.unwrap();
-            // let cor_s = MulState::cor(&corshare2s, &(s1data.cshare_s));
-            // let cor_d = MulState::cor(&corshare2d, &(s1data.cshare_d));
-            // let outshare2s = state2s.out_share(&cor_s);
-            // let outshare2d = state2d.out_share(&cor_d);
+            key[0] = 1u8;
+            let mut res = con.get(key.clone());
+            while res.is_err() {
+                res = con.get(key.clone());
+            }
+            let mut bin: Vec<u8> = res.unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
+            let s1data: TransactionPackage = res.unwrap();
+            let cor_s = MulState::cor(&corshare2s, &(s1data.cshare_s));
+            let cor_d = MulState::cor(&corshare2d, &(s1data.cshare_d));
+            let outshare2s = state2s.out_share(&cor_s);
+            let outshare2d = state2d.out_share(&cor_d);
             // // ======================================================================================
-            // let mut encoded: Vec<u8> = Vec::new();
-            // encoded.extend(bincode::serialize(&(outshare2s.clone(), outshare2d.clone())).unwrap());
-            // let mut key: Vec<u8> = Vec::new();
-            // key.extend([2u8, 3u8]); // SERVER ID, TYPE
-            // key.extend(td.id.to_be_bytes());
-            // let _ : () = con.set(key.clone(), encoded).unwrap();
-            // // WAIT for response
-            // key[0] = 1u8;
-            // let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
-            // let mut res = bincode::deserialize(&bin);
-            // while res.is_err() {
-            //     bin = con.get(key.clone()).unwrap();
-            //     res = bincode::deserialize(&bin);
-            // }
-            // let s1sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
-            // MulState::verify(&outshare2s, &s1sketch.0);
-            // MulState::verify(&outshare2d, &s1sketch.0);
+            let mut encoded: Vec<u8> = Vec::new();
+            encoded.extend(bincode::serialize(&(outshare2s.clone(), outshare2d.clone())).unwrap());
+            let mut key: Vec<u8> = Vec::new();
+            key.extend([2u8, 3u8]); // SERVER ID, TYPE
+            key.extend(td.id.to_be_bytes());
+            let _ : () = con.set(key.clone(), encoded).unwrap();
+            // WAIT for response
+            key[0] = 1u8;
+            let mut bin: Vec<u8> = con.get(key.clone()).unwrap();
+            let mut res = bincode::deserialize(&bin);
+            while res.is_err() {
+                bin = con.get(key.clone()).unwrap();
+                res = bincode::deserialize(&bin);
+            }
+            let s1sketch: (OutShare<FieldElm>, OutShare<FieldElm>) = res.unwrap();
+            MulState::verify(&outshare2s, &s1sketch.0);
+            MulState::verify(&outshare2d, &s1sketch.0);
             // ======================================================================================
-            // Get data from S1
-            // Add gp_val vectors and check == 0
-            // Multiply commitments/exponents and verify transaction proof
-            // verify sketch 
-            // let g_r2_1: RistrettoPoint = s1data.g_r2.decompress().expect("REASON");
-            // let g_r2_2: RistrettoPoint = g_r2.decompress().expect("REASON");
-            // let g_r2 = g_r2_1 + g_r2_2;
-            // let g_r3_1: RistrettoPoint = g_r3.decompress().expect("REASON");
-            // let g_r3_2: RistrettoPoint = s1data.g_r3.decompress().expect("REASON");
-            // let g_r3 = g_r3_1 + g_r3_2;
-            // let comx_1: RistrettoPoint = com_x.decompress().expect("REASON");
-            // let comx_2: RistrettoPoint = s1data.com_x.decompress().expect("REASON");
-            // let comx = comx_1 + comx_2;
-            // let comix_1: RistrettoPoint = com_ix.decompress().expect("REASON");
-            // let comix_2: RistrettoPoint = s1data.com_ix.decompress().expect("REASON");
-            // let comix = comix_1 + comix_2;
-            // let g_r1 = td.g_r1.decompress().expect("REASON");
-            // let com_i = td.com_i.decompress().expect("REASON");
-            // let (com_a, com_x) = verify_coms_from_dpf(g_r1, g_r2, g_r3, com_i, comx, comix, td.triple_proof).unwrap();
             let ver = true; 
             let mut success = String::from("Transaction Processed");
             if ver != true {
@@ -209,7 +193,10 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
                         key_arr.push(zbytes.to_vec());
                     }
                     else {
-                        key_arr.push(vec);
+                        // decrypt key 
+                        let padding = Oaep::new::<Sha256>();
+                        let dec_key = private_key.decrypt(padding, &vec).expect("failed to decrypt");
+                        key_arr.push(dec_key);
                     }
                 }
                 key.clear();
@@ -237,13 +224,10 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
             let success = String::from("yay!");
             let encoded = bincode::serialize(&success).unwrap();
             let _ = stream.write(&encoded);
-            // let balance_vec2 = ServerData::settle(&enc_db2, &s1enc_db, &settle_data.dpf_key);
-            // let encoded = bincode::serialize(&balance_vec2).unwrap();
-            // let _ = stream.write(&encoded);
+            let balance_vec2 = ServerData::settle(&enc_db2, &s1enc_db, &settle_data.dpf_key);
+            let encoded = bincode::serialize(&balance_vec2).unwrap();
+            let _ = stream.write(&encoded);
         }
-
-        // And you can sleep this connection with the connected sender
-        // thread::sleep(Duration::from_secs(1));  
     }
     Ok(())
 }

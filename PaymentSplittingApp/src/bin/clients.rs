@@ -22,6 +22,7 @@ use std::ops::Neg;
 use std::time::{Duration, SystemTime};
 use rand::Rng;
 use lazy_static::lazy_static;
+use rsa::{RsaPrivateKey, RsaPublicKey, Oaep, sha2::Sha256};
 
 use payapp::ps::*;
 use payapp::ggm::*;
@@ -35,6 +36,8 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::DPF_DOMAIN;
 use payapp::SETTLE_DOMAIN;
+use payapp::PUB_KEY;
+use payapp::PRIV_KEY;
 
 pub const SERVER1: &str = "127.0.0.1:7878";
 pub const SERVER2: &str = "127.0.0.1:7879";
@@ -46,8 +49,6 @@ lazy_static! {
     pub static ref GEN_G: RistrettoPoint =
         RistrettoPoint::hash_from_bytes::<Sha512>(b"CMZ Generator A");
     pub static ref GEN_H: RistrettoPoint = dalek_constants::RISTRETTO_BASEPOINT_POINT;
-    // pub static ref priv_key = RsaPrivateKey::from_components(BigUint::from(1u32),BigUint::from(1u32),BigUint::from(1u32),).expect("failed to generate a key");
-    // pub static ref pub_key = RsaPublicKey::from(&priv_key);
 }
 
 fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error> {
@@ -61,7 +62,11 @@ fn setup_group(group_size: usize) -> Result<Vec<GroupTokenPriv>, std::io::Error>
     let mut encoded: Vec<u8> = Vec::new();
     let key_bytes1 = rand::thread_rng().gen::<[u8; 16]>();
     let key_bytes2 = rand::thread_rng().gen::<[u8; 16]>();
-    let prf_keys = (key_bytes1.to_vec(), key_bytes2.to_vec());
+    let mut rng = rand::thread_rng();
+    let padding = Oaep::new::<Sha256>();
+    // Encrypt S2's key
+    let enc_key = public_key.encrypt(&mut rng, padding, &key_bytes2[..]).expect("failed to encrypt");
+    let prf_keys = (key_bytes1.to_vec(), enc_key.to_vec());
     encoded.push(1u8);
     encoded.extend(bincode::serialize(&prf_keys).unwrap());
     stream1.write(&encoded).expect("failed to write");
