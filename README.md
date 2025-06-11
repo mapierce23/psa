@@ -8,14 +8,17 @@ To run locally: you must run a local Redis server. Install Redis here: https://r
 First, compile and run servers S1 and S2: 
 
 rustc server1.rs
+
 ./server1
 
 rustc server2.rs
+
 ./server2
 
 Also ensure that the port #s for SERVER1 and SERVER2 are correct in clients.rs. Then run the client:
 
 rustc clients.rs
+
 ./clients
 
 You can adjust the number of groups, clients, and transactions in a given trial by editing the main() function of clients.rs. 
