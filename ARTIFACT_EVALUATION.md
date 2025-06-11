@@ -2,7 +2,7 @@
 
 Paper title:  Silent Splitter: Privacy for Payment Splitting via New Protocols for Distributed Point Functions 
 
-Artifacts HotCRP Id: **#Enter your HotCRP Id here** (not your paper Id, but the artifacts id)
+Artifacts HotCRP Id: #37
 
 Requested Badge: **Functional**
 
