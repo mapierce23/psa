@@ -356,12 +356,12 @@ fn settle(token: GroupTokenPriv, group_num: u32) -> io::Result<( )> {
 
 fn main() -> io::Result<( )> {
 
-    // Setup 5 Groups
+    // Setup Groups
     let mut thread_vec: Vec<thread::JoinHandle<Result<(), Error>>> = Vec::new();
     let priv_tokens1 = setup_group(MAX_GROUP_SIZE - 1).unwrap();
     let priv_tokens2 = setup_group(MAX_GROUP_SIZE).unwrap();
-    // let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
-    // let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
+    let priv_tokens4 = setup_group(MAX_GROUP_SIZE).unwrap();
+    let priv_tokens5 = setup_group(MAX_GROUP_SIZE).unwrap();
 
     let mut client1 = Vec::<GroupTokenPriv>::new();
     client1.push(priv_tokens1[0].clone());
@@ -409,11 +409,12 @@ fn main() -> io::Result<( )> {
         handle.join().unwrap();
     }
 
+    // For Balance Retrieval Latency, uncomment the following lines and view the Total Time output. 
+    // let now = SystemTime::now();
     // settle(priv_tokens1[0].clone(), 1);
     
     match now.elapsed() {
         Ok(elapsed) => {
-            // it prints '2'
             println!("Thruput {}", 50 as f64 / (elapsed.as_nanos() as f64 / (1000000000 as f64)));
             println!("Total time {}", elapsed.as_nanos() as f64 / (1000000000 as f64));
         }
