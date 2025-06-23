@@ -1,0 +1,7 @@
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/libtinyvec_macros-66661c55905090ec.rmeta: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tinyvec_macros-0.1.1/src/lib.rs
+
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/libtinyvec_macros-66661c55905090ec.rlib: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tinyvec_macros-0.1.1/src/lib.rs
+
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/tinyvec_macros-66661c55905090ec.d: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tinyvec_macros-0.1.1/src/lib.rs
+
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tinyvec_macros-0.1.1/src/lib.rs:

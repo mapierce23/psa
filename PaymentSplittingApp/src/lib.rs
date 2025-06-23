@@ -12,6 +12,11 @@ mod field;
 
 #[macro_use]
 extern crate lazy_static;
+use rsa::{RsaPrivateKey, RsaPublicKey};
+use rand_pcg::Pcg64;
+use rand::rngs::OsRng;
+use rsa::rand_core::SeedableRng;
+
 
 pub use crate::field::FieldElm;
 //pub use crate::rpc::CollectorClient;
@@ -24,11 +29,6 @@ pub const SETTLE_SIZE: usize = 233;
 pub const CRED_REQUEST_1: usize = 2648; 
 pub const TRANSACT_REQ_1: usize = 2824 + 136 * 9 - 38 * 1;
 pub const TRANSACT_REQ_2: usize = 2344 - 38 * 1;
-
-lazy_static! {
-    let PRIV_KEY = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
-    let PUB_KEY = RsaPublicKey::from(&private_key);
-}
 
 
 // Additive group, such as (Z_n, +)

@@ -1,0 +1,12 @@
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/libprost-5cedcc70bc2e81b6.rmeta: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/lib.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/error.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/message.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/types.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/encoding.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/../README.md
+
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/libprost-5cedcc70bc2e81b6.rlib: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/lib.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/error.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/message.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/types.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/encoding.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/../README.md
+
+/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/deps/prost-5cedcc70bc2e81b6.d: /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/lib.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/error.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/message.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/types.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/encoding.rs /home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/../README.md
+
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/lib.rs:
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/error.rs:
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/message.rs:
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/types.rs:
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/encoding.rs:
+/home/maggie/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-0.11.9/src/../README.md:

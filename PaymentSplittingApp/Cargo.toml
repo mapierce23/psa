@@ -12,6 +12,7 @@ bincode = "1"
 rand = "0.7.3"
 num-bigint = { version = "0.3", features = ["rand", "serde"] }
 rand_core = "0.5.1"
+rand_pcg = "0.3"
 serde_json = "1.0"
 rand_chacha = "0.3.1"
 rsa = "0.9.6"

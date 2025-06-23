@@ -7,7 +7,7 @@ use std ::net::{TcpListener,TcpStream};
 use std::io::{Read,Write};
 use std::thread;
 use std::sync::Mutex;
-use rsa::{RsaPrivateKey, RsaPublicKey, Oaep, sha2::Sha256};
+use rsa::{RsaPrivateKey, RsaPublicKey, Oaep};
 use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -38,8 +38,6 @@ use payapp::MAX_GROUP_SIZE;
 use payapp::MAX_GROUP_NUM;
 use payapp::SETTLE_SIZE;
 use payapp::TRANSACT_REQ_2;
-use payapp::PUB_KEY;
-use payapp::PRIV_KEY;
 
 // pub const REDIS: &str = "redis://127.0.0.1:6379";
 pub const REDIS: &str = "redis://10.128.0.4:6379";
@@ -193,10 +191,7 @@ fn handle_client(mut stream: TcpStream, counter: Arc<Mutex<usize>>, database: Ar
                         key_arr.push(zbytes.to_vec());
                     }
                     else {
-                        // decrypt key 
-                        let padding = Oaep::new::<Sha256>();
-                        let dec_key = private_key.decrypt(padding, &vec).expect("failed to decrypt");
-                        key_arr.push(dec_key);
+                        key_arr.push(vec);
                     }
                 }
                 key.clear();
