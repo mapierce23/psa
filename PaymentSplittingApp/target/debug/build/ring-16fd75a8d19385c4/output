@@ -1,3 +1,0 @@
-cargo:rustc-link-lib=static=ring-core
-cargo:rustc-link-lib=static=ring-test
-cargo:rustc-link-search=native=/mnt/c/users/maggi/Desktop/psa/PaymentSplittingApp/target/debug/build/ring-16fd75a8d19385c4/out
