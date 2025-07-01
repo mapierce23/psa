@@ -34,6 +34,14 @@ The code is in this Git repository, https://github.com/mapierce23/psa. The lates
 ### Set up the environment (Only for Functional and Reproduced badges)
 If you use multiple machines or VM instances to run the two servers and clients, you'll need to clone this git repo on each one. 
 
+Install Rust using the instructions on: https://www.rust-lang.org/tools/install.
+
+Set the non-stable version of Rust, nightly, as the default by running: 
+
+```bash
+cargo default nightly
+```
+
 ```bash
 git clone https://github.com/mapierce23/psa.git
 ```
