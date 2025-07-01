@@ -4,7 +4,7 @@ Paper title:  Silent Splitter: Privacy for Payment Splitting via New Protocols f
 
 Artifacts HotCRP Id: #37
 
-Requested Badge: **Functional**
+Requested Badge: **Available**
 
 ## Description
 The source code mentioned in section 6 of our paper, "Implementation and Evaluation." An implementation of our payment system, with clients and two servers. 
