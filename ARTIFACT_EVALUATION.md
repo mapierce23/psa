@@ -29,7 +29,7 @@ No specific software required.
 See the README for instructions on how to run the artifact. The only software necessary to install should be Redis open source (https://redis.io/downloads/) and a Rust compiler, if one is not already installed. 
 
 ### Accessibility (All badges)
-The code is in this Git repository, https://github.com/mapierce23/psa. The latest commit hash is 51914cb1e468b68bdc6038c7b0bbc4471bda7a16, which is the one that should be evaluated. 
+The code is in this Git repository, https://github.com/mapierce23/psa.
 
 ### Set up the environment (Only for Functional and Reproduced badges)
 If you use multiple machines or VM instances to run the two servers and clients, you'll need to clone this git repo on each one. 
